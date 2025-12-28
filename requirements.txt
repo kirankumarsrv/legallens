@@ -1,10 +1,47 @@
-langchain 
-langchain-community 
-langchain-openai 
-faiss-cpu 
-pypdf 
+# Core dependencies
 python-dotenv
-groq 
-langchain_huggingface
-chromadb
+
+# LLM & NLP
+groq
+langchain
+langchain-core
+langchain-community
+langchain-huggingface
+langchain-chroma
+
+# Embeddings
 sentence-transformers
+torch
+
+# Vector stores & search
+chromadb
+faiss-cpu
+# hnswlib
+
+# Document processing
+PyPDF2
+pypdf
+pdfplumber
+python-docx
+
+# NLP
+spacy
+
+# Graph & Workflow
+langgraph
+
+# Data processing
+numpy
+pandas
+scikit-learn
+
+# Utilities
+pydantic
+requests
+tqdm
+
+# Development & Testing
+pytest
+pytest-cov
+black
+flake8

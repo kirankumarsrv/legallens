@@ -1,0 +1,11 @@
+.venv
+datasets
+.dist
+vector_db/
+# Python cache everywhere
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+modules/__pycache__/
+**/modules/__pycache__/
