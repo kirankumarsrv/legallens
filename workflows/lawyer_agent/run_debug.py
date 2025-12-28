@@ -14,10 +14,10 @@ Perfect for:
     - Understanding node dependencies
     - Tracking state transformations
 
-Test Questions:
-    1. "Is right to privacy a fundamental right in India?"
-    2. "What are the limits on freedom of speech?"
-    3. "Can death penalty be imposed in murder cases?"
+Test Case Scenarios:
+    1. Client employed at tech company; employer monitored personal emails without consent
+    2. Police conducted warrantless search of home based on anonymous tip  
+    3. Spouse seeking access to personal phone data during contested divorce proceedings
 """
 
 import sys
@@ -344,12 +344,39 @@ def build_instrumented_graph(dependencies: dict, logger: NodeExecutionLogger) ->
         print("   ✗ REVISE → Return to Fact Gathering (TODO)")
         print("   ⊘ STOP → Halt workflow")
         
-        result = human_approval_node(state, "facts")
-        
+        result = human_approval_node(state, "facts", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+
+        # If reviewer requested a revision, act on the LLM-interpreted revise_action
+        if result.get("revise_action"):
+            action = result["revise_action"]
+            restart = action.get("restart_from", "fact_gathering")
+            refined_query = action.get("refined_query")
+
+            # Apply refined query to state
+            if refined_query:
+                result["question"] = refined_query
+
+            # Simple dispatcher: call the restart node directly and re-run approval
+            max_iter = 3
+            for _ in range(max_iter):
+                if restart == "fact_gathering":
+                    print(f"\n🔁 Revising: Re-running fact_gathering with refined query...\n")
+                    result = fact_gathering_instrumented(result)
+                    # After re-gathering, re-enter approval loop
+                    result = human_approval_node(result, "facts", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+                    if not result.get("revise_action"):
+                        break
+                else:
+                    # Unknown restart target: default to fact gathering
+                    result = fact_gathering_instrumented(result)
+                    result = human_approval_node(result, "facts", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+                    if not result.get("revise_action"):
+                        break
+
         logger.log_node_end("approve_facts", result,
             reasoning="Human reviewed facts. Proceeding to next phase.")
         logger.log_phase_complete("Approval Gate #1", 1, "Legal Analysis")
-        
+
         return result
     
     graph.add_node("approve_facts", approve_facts_instrumented)
@@ -461,12 +488,42 @@ def build_instrumented_graph(dependencies: dict, logger: NodeExecutionLogger) ->
         print("   ✗ REVISE → Return to Legal Analysis (TODO)")
         print("   ⊘ STOP → Halt workflow")
         
-        result = human_approval_node(state, "analysis")
-        
+        result = human_approval_node(state, "analysis", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+
+        # If reviewer requested revision, use LLM-refined query or restart target
+        if result.get("revise_action"):
+            action = result["revise_action"]
+            restart = action.get("restart_from", "legal_analysis")
+            refined_query = action.get("refined_query")
+
+            if refined_query:
+                result["question"] = refined_query
+
+            max_iter = 3
+            for _ in range(max_iter):
+                if restart == "legal_analysis":
+                    print(f"\n🔁 Revising: Re-running legal_analysis with refined query...\n")
+                    result = legal_analysis_instrumented(result)
+                    result = human_approval_node(result, "analysis", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+                    if not result.get("revise_action"):
+                        break
+                elif restart == "fact_gathering":
+                    print(f"\n🔁 Revising: Re-running fact_gathering then legal_analysis...\n")
+                    result = fact_gathering_instrumented(result)
+                    result = legal_analysis_instrumented(result)
+                    result = human_approval_node(result, "analysis", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+                    if not result.get("revise_action"):
+                        break
+                else:
+                    result = legal_analysis_instrumented(result)
+                    result = human_approval_node(result, "analysis", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+                    if not result.get("revise_action"):
+                        break
+
         logger.log_node_end("approve_analysis", result,
             reasoning="Human reviewed legal analysis. Proceeding to prediction.")
         logger.log_phase_complete("Approval Gate #2", 2, "Prediction")
-        
+
         return result
     
     graph.add_node("approve_analysis", approve_analysis_instrumented)
@@ -574,12 +631,41 @@ def build_instrumented_graph(dependencies: dict, logger: NodeExecutionLogger) ->
         print("   ✗ REVISE → Return to Prediction (TODO)")
         print("   ⊘ STOP → Halt workflow")
         
-        result = human_approval_node(state, "prediction")
-        
+        result = human_approval_node(state, "prediction", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+
+        if result.get("revise_action"):
+            action = result["revise_action"]
+            restart = action.get("restart_from", "prediction")
+            refined_query = action.get("refined_query")
+
+            if refined_query:
+                result["question"] = refined_query
+
+            max_iter = 3
+            for _ in range(max_iter):
+                if restart == "prediction":
+                    print(f"\n🔁 Revising: Re-running prediction with refined inputs...\n")
+                    result = prediction_instrumented(result)
+                    result = human_approval_node(result, "prediction", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+                    if not result.get("revise_action"):
+                        break
+                elif restart == "legal_analysis":
+                    print(f"\n🔁 Revising: Re-running legal_analysis then prediction...\n")
+                    result = legal_analysis_instrumented(result)
+                    result = prediction_instrumented(result)
+                    result = human_approval_node(result, "prediction", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+                    if not result.get("revise_action"):
+                        break
+                else:
+                    result = prediction_instrumented(result)
+                    result = human_approval_node(result, "prediction", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+                    if not result.get("revise_action"):
+                        break
+
         logger.log_node_end("approve_prediction", result,
             reasoning="Human reviewed prediction. Proceeding to drafting.")
         logger.log_phase_complete("Approval Gate #3", 3, "Drafting")
-        
+
         return result
     
     graph.add_node("approve_prediction", approve_prediction_instrumented)
@@ -696,12 +782,47 @@ def build_instrumented_graph(dependencies: dict, logger: NodeExecutionLogger) ->
         print("   ✗ REVISE → Return to Drafting (TODO)")
         print("   ⊘ STOP → Halt workflow")
         
-        result = human_approval_node(state, "draft")
-        
+        result = human_approval_node(state, "draft", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+
+        if result.get("revise_action"):
+            action = result["revise_action"]
+            restart = action.get("restart_from", "drafting")
+            refined_query = action.get("refined_query")
+
+            if refined_query:
+                result["question"] = refined_query
+
+            max_iter = 3
+            for _ in range(max_iter):
+                if restart == "drafting" or restart == "draft":
+                    print(f"\n🔁 Revising: Re-running drafting with refined inputs...\n")
+                    result = drafting_instrumented(result)
+                    result = human_approval_node(result, "draft", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+                    if not result.get("revise_action"):
+                        break
+                else:
+                    # If restart points earlier, re-run upstream phases
+                    print(f"\n🔁 Revising: Re-running upstream phases starting at {restart}...\n")
+                    if restart == "fact_gathering":
+                        result = fact_gathering_instrumented(result)
+                        result = legal_analysis_instrumented(result)
+                        result = prediction_instrumented(result)
+                        result = drafting_instrumented(result)
+                    elif restart == "legal_analysis":
+                        result = legal_analysis_instrumented(result)
+                        result = prediction_instrumented(result)
+                        result = drafting_instrumented(result)
+                    else:
+                        result = drafting_instrumented(result)
+
+                    result = human_approval_node(result, "draft", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+                    if not result.get("revise_action"):
+                        break
+
         logger.log_node_end("approve_draft", result,
             reasoning="Final approval complete. Workflow finished.")
         logger.log_phase_complete("Final Approval", 4, "WORKFLOW COMPLETE")
-        
+
         return result
     
     graph.add_node("approve_draft", approve_draft_instrumented)
@@ -922,11 +1043,29 @@ if __name__ == "__main__":
     # Setup dependencies
     dependencies = setup_dependencies()
     
-    # Test questions
+    # Test case scenarios - realistic client matters with facts, parties, and specific issues
     test_questions = [
-        "Is right to privacy a fundamental right in India?",
-        "What are the limits on freedom of speech?",
-        "Can death penalty be imposed in murder cases?",
+        """CLIENT CASE: PRIVACY VIOLATION AT WORKPLACE
+
+FACTS:
+- Client: Rajesh Kumar (Employee)
+- Employer: TechCorp India Pvt Ltd
+- Timeline: July 2023 - October 2024
+- Issue: Employer monitored client's personal email accounts without consent/knowledge
+  * IT department installed keylogger software
+  * Personal emails to family, doctor, spouse monitored
+  * Client discovered when IT manager mentioned personal health information
+- Client: Software Engineer, employed for 8 years, no disciplinary history
+- No workplace policy mentioning email monitoring
+- No consent form signed by employee
+- Employer justification: "Security reasons, company policy"
+
+QUESTION: 
+Does the employer's action violate Rajesh's fundamental right to privacy under Article 21 of the Indian Constitution? 
+What are the legal remedies available? 
+Can Rajesh seek damages and compensation?
+
+APPLICABLE AREAS: Article 21 (Constitution), IPC provisions on privacy, Employment law""",
     ]
     
     print("\n" + "=" * 80)
@@ -939,7 +1078,10 @@ if __name__ == "__main__":
     print("  ✓ Why each step happens (reasoning)")
     print("  ✓ Complete graph flow verification")
     
-    # Run first question
+    # Run first case scenario
+    print("\n" + "="*80)
+    print("📋 RUNNING CASE SCENARIO: WORKPLACE PRIVACY VIOLATION")
+    print("="*80)
     run_lawyer_agent_debug(test_questions[0], dependencies)
     
     # Uncomment to run additional questions:

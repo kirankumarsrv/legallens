@@ -54,7 +54,7 @@ def build_lawyer_agent_graph(dependencies: dict) -> StateGraph:
     
     # Gate 1: Approve facts
     def approve_facts(state: LawyerState) -> LawyerState:
-        return human_approval_node(state, "facts")
+        return human_approval_node(state, "facts", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
     
     graph.add_node("approve_facts", approve_facts)
     
@@ -72,7 +72,7 @@ def build_lawyer_agent_graph(dependencies: dict) -> StateGraph:
     
     # Gate 2: Approve analysis
     def approve_analysis(state: LawyerState) -> LawyerState:
-        return human_approval_node(state, "analysis")
+        return human_approval_node(state, "analysis", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
     
     graph.add_node("approve_analysis", approve_analysis)
     
@@ -89,7 +89,7 @@ def build_lawyer_agent_graph(dependencies: dict) -> StateGraph:
     
     # Gate 3: Approve prediction
     def approve_prediction(state: LawyerState) -> LawyerState:
-        return human_approval_node(state, "prediction")
+        return human_approval_node(state, "prediction", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
     
     graph.add_node("approve_prediction", approve_prediction)
     
@@ -107,7 +107,7 @@ def build_lawyer_agent_graph(dependencies: dict) -> StateGraph:
     
     # Gate 4: Approve draft
     def approve_draft(state: LawyerState) -> LawyerState:
-        return human_approval_node(state, "draft")
+        return human_approval_node(state, "draft", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
     
     graph.add_node("approve_draft", approve_draft)
     

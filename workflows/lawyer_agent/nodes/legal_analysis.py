@@ -45,36 +45,74 @@ def legal_analysis_node(state: LawyerState, chroma_stores: dict, embedding_model
     
     # Stage 2: Retrieve precedents
     combined_query = f"{state['question']} {' '.join(state['facts_raw'][:2])}"
+    # If revise_action contains year constraints, pass them to precedent retrieval
+    target_years = None
+    if state.get('revise_action') and state['revise_action'].get('constraint_years'):
+        target_years = state['revise_action'].get('constraint_years')
+
     precedents = retrieve_precedents(
         query=combined_query,
         faiss_store=faiss_store,
         embedding_model=embedding_model,
-        k=5
+        k=5,
+        target_years=target_years
     )
     
     # Stage 3: LLM reasoning
     statute_text = "\n\n".join([f"[{s['source']}] {s['content']}" for s in statutes[:3]])
     precedent_text = "\n\n".join([f"[Case] {p['content'][:200]}..." for p in precedents[:2]])
     
-    prompt = f"""You are a legal expert. Perform structured legal analysis.
+    prompt = f"""You are an expert legal analyst. Perform structured legal analysis combining statutory law with precedent.
 
-Question:
+**LEGAL QUESTION:**
 {state['question']}
 
-Applicable Statutes:
+**APPLICABLE STATUTES & LEGAL RULES:**
 {statute_text}
 
-Relevant Precedents:
+**RELEVANT PRECEDENT CASES:**
 {precedent_text}
 
-Provide:
-1. Legal Position (what the law says)
-2. Arguments (why it applies)
-3. Counter-Arguments (possible objections)
-4. Statutory Interpretation (how courts interpret it)
-5. Conclusion (your expert opinion)
+**TASK: Analyze and provide the following sections:**
 
-Be precise, cite sections, mention relevant cases."""
+1. **LEGAL POSITION** (What does the law say?)
+   - State the relevant legal rules from the statutes
+   - Explain who the law applies to and under what conditions
+   - Cite specific statute sections
+
+2. **PRO-ARGUMENTS** (Facts/law that SUPPORT our position)
+   - List 2-3 strong arguments based on the facts and applicable statutes
+   - For each argument, cite the supporting statute section or case
+   - Explain why this argument is persuasive
+
+3. **COUNTER-ARGUMENTS** (Potential weaknesses/opposing positions)
+   - List 2-3 arguments that could be raised AGAINST our position
+   - Explain why courts might find these persuasive
+   - Identify how to address or mitigate these risks
+
+4. **PRECEDENT ANALYSIS** (How have courts decided similar cases?)
+   - Compare the facts of our case with the precedent cases
+   - Which cases favor us? Why?
+   - Which cases disfavor us? How can we distinguish them?
+   - What interpretation have courts used consistently?
+
+5. **STATUTORY INTERPRETATION** (How have courts read these laws?)
+   - Explain how courts have historically interpreted the applicable statutes
+   - Are there conflicting interpretations? Which is more favorable?
+   - Any recent judicial trends?
+
+6. **RISK ASSESSMENT & MITIGATION**
+   - What are the main legal risks in our position?
+   - How can we address these risks in our arguments?
+   - Any conflicting laws we need to reconcile?
+
+**FORMAT:**
+- Be precise and cite statute sections (e.g., Article 21, IPC Section 377)
+- Reference cases by name and year (e.g., K.S. Puttaswamy v. UoI, 2017)
+- Use clear, structured sections as above
+- Avoid speculation; base everything on the facts and law provided
+
+**TONE:** Professional, neutral, analytical."""
 
     analysis = llm.generate(prompt)
     

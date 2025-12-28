@@ -30,15 +30,25 @@ def fact_gathering_node(state: LawyerState, chroma_stores: dict, embedding_model
     """
     
     print("\n📋 PHASE 1: FACT GATHERING")
-    print("   (Statutory sources only)")
-    print("   (Constitution, IPC, CrPC)\n")
+    print("   Objectives:")
+    print("   - Extract key entities (parties, dates, legal issues)")
+    print("   - Retrieve applicable statutes (Constitution, IPC, CrPC)")
+    print("   - Establish factual timeline")
+    print("   - Do NOT analyze yet; just gather facts & applicable law\n")
+    
+    # Extract target years if provided (from revise_action)
+    target_years = None
+    if state.get("revise_action") and state["revise_action"].get("constraint_years"):
+        target_years = state["revise_action"]["constraint_years"]
+        print(f"   🎯 Using revised year constraints: {target_years}\n")
     
     # Retrieve statutes
     facts = retrieve_statutes(
         query=state["question"],
         chroma_stores=chroma_stores,
         embedding_model=embedding_model,
-        k=6
+        k=6,
+        target_years=target_years
     )
     
     # Update state

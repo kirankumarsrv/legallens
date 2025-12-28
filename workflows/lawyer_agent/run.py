@@ -3,10 +3,10 @@ Test Runner for Lawyer Agent
 
 Creates dependencies, invokes graph, displays output.
 
-Test Questions:
-    1. "Is right to privacy a fundamental right in India?"
-    2. "What are the limits on freedom of speech?"
-    3. "Can death penalty be imposed in murder cases?"
+Test Case Scenarios:
+    1. Client employed at tech company; employer monitored personal emails without consent
+    2. Police conducted warrantless search of home based on anonymous tip
+    3. Spouse seeking access to personal phone data during contested divorce proceedings
 """
 
 import sys
@@ -160,11 +160,29 @@ if __name__ == "__main__":
     # Setup
     dependencies = setup_dependencies()
     
-    # Test questions
+    # Test case scenarios - realistic client matters with facts, parties, and specific issues
     test_questions = [
-        "Is right to privacy a fundamental right in India?",
-        "What are the limits on freedom of speech?",
-        "Can death penalty be imposed in murder cases?",
+        """CLIENT CASE: PRIVACY VIOLATION AT WORKPLACE
+
+FACTS:
+- Client: Rajesh Kumar (Employee)
+- Employer: TechCorp India Pvt Ltd
+- Timeline: July 2023 - October 2024
+- Issue: Employer monitored client's personal email accounts without consent/knowledge
+  * IT department installed keylogger software
+  * Personal emails to family, doctor, spouse monitored
+  * Client discovered when IT manager mentioned personal health information
+- Client: Software Engineer, employed for 8 years, no disciplinary history
+- No workplace policy mentioning email monitoring
+- No consent form signed by employee
+- Employer justification: "Security reasons, company policy"
+
+QUESTION: 
+Does the employer's action violate Rajesh's fundamental right to privacy under Article 21 of the Indian Constitution? 
+What are the legal remedies available? 
+Can Rajesh seek damages and compensation?
+
+APPLICABLE AREAS: Article 21 (Constitution), IPC provisions on privacy, Employment law""",
     ]
     
     print("\n" + "=" * 60)

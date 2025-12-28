@@ -188,18 +188,37 @@ Summary:
         """
         p = self.config.provider
 
-        if p == "groq":
-            return self._call_groq(prompt, temperature, max_tokens)
-        if p == "openai":
-            return self._call_openai(prompt, temperature, max_tokens)
-        if p == "huggingface":
-            return self._call_huggingface(prompt, max_tokens)
-        if p == "ollama":
-            return self._call_ollama(prompt, max_tokens)
-        if p == "local":
-            return self._call_local(prompt, max_tokens)
+        # Log prompt to console for debugging (truncated)
+        try:
+            preview = prompt.replace('\n', ' ')[:800]
+        except Exception:
+            preview = str(prompt)[:800]
+        print("\n--- LLM REQUEST ---")
+        print(f"Provider: {p} | Model: {self.config.model_name}")
+        print(f"Prompt (preview, first 800 chars): {preview}")
 
-        raise RuntimeError(f"No generation method implemented for provider '{p}'")
+        if p == "groq":
+            resp = self._call_groq(prompt, temperature, max_tokens)
+        elif p == "openai":
+            resp = self._call_openai(prompt, temperature, max_tokens)
+        elif p == "huggingface":
+            resp = self._call_huggingface(prompt, max_tokens)
+        elif p == "ollama":
+            resp = self._call_ollama(prompt, max_tokens)
+        elif p == "local":
+            resp = self._call_local(prompt, max_tokens)
+        else:
+            raise RuntimeError(f"No generation method implemented for provider '{p}'")
+
+        # Log response preview
+        try:
+            rpreview = resp.replace('\n', ' ')[:800]
+        except Exception:
+            rpreview = str(resp)[:800]
+        print("--- LLM RESPONSE ---")
+        print(f"Response (preview, first 800 chars): {rpreview}\n")
+
+        return resp
 
     # ------------------------------------------------------
     # Provider Implementations

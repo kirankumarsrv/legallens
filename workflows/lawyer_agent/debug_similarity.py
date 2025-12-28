@@ -13,7 +13,23 @@ from modules.embedding_manager import EmbeddingManager
 from modules.vector_store.chroma_vector_store import ChromaVectorStore
 from modules.vector_store.FAISS_vector_store import FAISSVectorStore
 
-query = "Is right to privacy a fundamental right in India?"
+query = """CLIENT CASE: PRIVACY VIOLATION AT WORKPLACE
+
+FACTS:
+- Client: Rajesh Kumar (Employee)
+- Employer: TechCorp India Pvt Ltd
+- Timeline: July 2023 - October 2024
+- Issue: Employer monitored client's personal email accounts without consent
+  * IT department installed keylogger software
+  * Personal emails to family, doctor, spouse monitored
+  * Client discovered when IT manager mentioned personal health information
+- Client: Software Engineer, employed for 8 years, no disciplinary history
+- No workplace policy mentioning email monitoring
+- No consent form signed by employee
+
+QUESTION: 
+Does the employer's action violate Rajesh's fundamental right to privacy under Article 21?
+What are the legal remedies available?"""
 
 print("\n" + "="*70)
 print("METADATA-FIRST DEBUG WORKFLOW")

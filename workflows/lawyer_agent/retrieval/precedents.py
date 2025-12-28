@@ -14,7 +14,7 @@ No reasoning, just similarity search.
 from typing import List, Dict, Any
 
 
-def retrieve_precedents(query: str, faiss_store: Any = None, embedding_model: Any = None, k: int = 5) -> List[Dict[str, Any]]:
+def retrieve_precedents(query: str, faiss_store: Any = None, embedding_model: Any = None, k: int = 5, target_years: List[int] = None) -> List[Dict[str, Any]]:
     """
     Retrieve relevant Supreme Court precedents using METADATA-FIRST approach.
     
@@ -38,47 +38,52 @@ def retrieve_precedents(query: str, faiss_store: Any = None, embedding_model: An
     
     print("   🏛️  METADATA-FIRST PRECEDENT RETRIEVAL")
     
-    # ============================================
-    # STEP 1: METADATA LOOKUP (MANDATORY FIRST)
-    # ============================================
-    try:
-        from modules.vector_store.chroma_vector_store import ChromaVectorStore
-        
-        metadata_db = ChromaVectorStore(persist_dir="vector_db/metadata")
-        
-        if not embedding_model:
-            print("   ⚠️  No embedding model provided. Skipping metadata lookup.")
-            years = []
-        else:
-            # Encode query
-            query_embedding = embedding_model.embed_query(query)
-            
-            # Perform similarity search in metadata
-            results = metadata_db.collection.query(
-                query_embeddings=[query_embedding],
-                n_results=k,
-                include=["metadatas", "distances"]
-            )
-            
-            # Extract years
-            years = set()
-            
-            if results and results["metadatas"] and results["metadatas"][0]:
-                for metadata in results['metadatas'][0]:
-                    year = metadata.get("year")
-                    if year and str(year).isdigit():
-                        years.add(int(year))
-            
-            years = sorted(list(years))
-            
-            if years:
-                print(f"   ✅ Metadata lookup: Found relevant years {years}")
+    # If explicit target_years provided (from revise feedback), use them directly
+    if target_years:
+        years = target_years
+        print(f"   🎯 Using explicit year constraints from feedback: {years}")
+    else:
+        # ============================================
+        # STEP 1: METADATA LOOKUP (MANDATORY FIRST)
+        # ============================================
+        try:
+            from modules.vector_store.chroma_vector_store import ChromaVectorStore
+
+            metadata_db = ChromaVectorStore(persist_dir="vector_db/metadata")
+
+            if not embedding_model:
+                print("   ⚠️  No embedding model provided. Skipping metadata lookup.")
+                years = []
             else:
-                print(f"   ⚠️  Metadata lookup: No relevant years found")
-    
-    except Exception as e:
-        print(f"   ⚠️  Metadata lookup failed: {e}")
-        years = []
+                # Encode query
+                query_embedding = embedding_model.embed_query(query)
+
+                # Perform similarity search in metadata
+                results = metadata_db.collection.query(
+                    query_embeddings=[query_embedding],
+                    n_results=k,
+                    include=["metadatas", "distances"]
+                )
+
+                # Extract years
+                years = set()
+
+                if results and results["metadatas"] and results["metadatas"][0]:
+                    for metadata in results['metadatas'][0]:
+                        year = metadata.get("year")
+                        if year and str(year).isdigit():
+                            years.add(int(year))
+
+                years = sorted(list(years))
+
+                if years:
+                    print(f"   ✅ Metadata lookup: Found relevant years {years}")
+                else:
+                    print(f"   ⚠️  Metadata lookup: No relevant years found")
+
+        except Exception as e:
+            print(f"   ⚠️  Metadata lookup failed: {e}")
+            years = []
 
     # ============================================
     # STEP 2: YEARWISE FAISS RETRIEVAL (TARGETED)
