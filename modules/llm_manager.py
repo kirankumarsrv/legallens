@@ -182,9 +182,16 @@ Summary:
 
         return self.generate(prompt, temperature=0.0, max_tokens=300)
 
-    def generate(self, prompt: str, temperature: float = 0.0, max_tokens: int = 512) -> str:
+    def generate(self, prompt: str, temperature: float = 0.0, max_tokens: int = 512, tools: list = None, tool_choice: str = "auto") -> str:
         """
         Generate text from any provider.
+        
+        Args:
+            prompt: The prompt text
+            temperature: Sampling temperature
+            max_tokens: Max tokens in response
+            tools: Optional list of LangChain tools for the LLM to call
+            tool_choice: "auto" (LLM decides), "required" (must call), or specific tool name
         """
         p = self.config.provider
 
@@ -195,12 +202,14 @@ Summary:
             preview = str(prompt)[:800]
         print("\n--- LLM REQUEST ---")
         print(f"Provider: {p} | Model: {self.config.model_name}")
+        if tools:
+            print(f"Tools available: {[t.name for t in tools]}")
         print(f"Prompt (preview, first 800 chars): {preview}")
 
         if p == "groq":
-            resp = self._call_groq(prompt, temperature, max_tokens)
+            resp = self._call_groq(prompt, temperature, max_tokens, tools, tool_choice)
         elif p == "openai":
-            resp = self._call_openai(prompt, temperature, max_tokens)
+            resp = self._call_openai(prompt, temperature, max_tokens, tools, tool_choice)
         elif p == "huggingface":
             resp = self._call_huggingface(prompt, max_tokens)
         elif p == "ollama":
@@ -225,37 +234,147 @@ Summary:
     # ------------------------------------------------------
 
     # -------------------- GROQ (official) ----------------
-    def _call_groq(self, prompt, temperature, max_tokens):
+    def _call_groq(self, prompt, temperature, max_tokens, tools=None, tool_choice="auto"):
         """
-        Official Groq SDK call for chat completions.
+        Official Groq SDK call for chat completions with optional tool use.
 
         Correct extraction:
             response.choices[0].message.content
         """
 
         try:
-            completion = self.client.chat.completions.create(
-                model=self.config.model_name,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
+            # Prepare messages
+            messages = [{"role": "user", "content": prompt}]
+            
+            # Prepare tool definitions if provided
+            tools_defs = None
+            if tools:
+                tools_defs = []
+                for tool in tools:
+                    # Build parameter schema from tool
+                    properties = {}
+                    required = []
+                    
+                    # Try to extract parameter info from docstring
+                    if hasattr(tool, 'args_schema') and tool.args_schema:
+                        # Use langchain args_schema if available
+                        schema = tool.args_schema
+                        if hasattr(schema, 'model_fields'):
+                            for field_name, field_info in schema.model_fields.items():
+                                properties[field_name] = {
+                                    "type": "string",
+                                    "description": str(field_info.description or f"Parameter: {field_name}")
+                                }
+                                if field_info.is_required():
+                                    required.append(field_name)
+                    
+                    # Fallback: basic parameters
+                    if not properties:
+                        properties = {
+                            "text": {
+                                "type": "string",
+                                "description": "The text or query to process"
+                            },
+                            "source_language": {
+                                "type": "string",
+                                "description": "Source language code (e.g., 'hi' for Hindi)"
+                            },
+                            "target_language": {
+                                "type": "string",
+                                "description": "Target language code (e.g., 'en' for English)"
+                            },
+                            "language": {
+                                "type": "string",
+                                "description": "Language code"
+                            }
+                        }
+                        required = ["text"]
+                    
+                    tool_def = {
+                        "type": "function",
+                        "function": {
+                            "name": tool.name,
+                            "description": tool.description,
+                            "parameters": {
+                                "type": "object",
+                                "properties": properties,
+                                "required": required if required else list(properties.keys())[:1]
+                            }
+                        }
+                    }
+                    tools_defs.append(tool_def)
+            
+            # Make request with or without tools
+            kwargs = {
+                "model": self.config.model_name,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+            
+            if tools_defs:
+                kwargs["tools"] = tools_defs
+                kwargs["tool_choice"] = tool_choice
+            
+            completion = self.client.chat.completions.create(**kwargs)
 
-            return completion.choices[0].message.content.strip()
+            # Extract response
+            response_message = completion.choices[0].message
+            
+            # Check if tool was called
+            if hasattr(response_message, 'tool_calls') and response_message.tool_calls:
+                tool_call = response_message.tool_calls[0]
+                print(f"\n✅ TOOL CALLED: {tool_call.function.name}")
+                print(f"   Arguments: {tool_call.function.arguments}")
+                return response_message.content or f"[Tool: {tool_call.function.name}]"
+            
+            return response_message.content.strip()
 
         except Exception as e:
             raise RuntimeError(f"Groq call failed: {str(e)}")
 
     # -------------------- OPENAI --------------------------
-    def _call_openai(self, prompt, temperature, max_tokens):
+    def _call_openai(self, prompt, temperature, max_tokens, tools=None, tool_choice="auto"):
         try:
-            r = self.client.ChatCompletion.create(
-                model=self.config.model_name,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
-            return r["choices"][0]["message"]["content"].strip()
+            kwargs = {
+                "model": self.config.model_name,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+            
+            if tools:
+                tools_defs = []
+                for tool in tools:
+                    tool_def = {
+                        "type": "function",
+                        "function": {
+                            "name": tool.name,
+                            "description": tool.description,
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "query": {
+                                        "type": "string",
+                                        "description": f"Query for {tool.name}"
+                                    }
+                                },
+                                "required": ["query"]
+                            }
+                        }
+                    }
+                    tools_defs.append(tool_def)
+                kwargs["tools"] = tools_defs
+                kwargs["tool_choice"] = tool_choice
+            
+            r = self.client.ChatCompletion.create(**kwargs)
+            
+            message = r["choices"][0]["message"]
+            if "tool_calls" in message:
+                print(f"\n✅ TOOL CALLED: {message['tool_calls'][0]['function']['name']}")
+                return message.get("content", f"[Tool: {message['tool_calls'][0]['function']['name']}]")
+            
+            return message["content"].strip()
         except Exception as e:
             raise RuntimeError("OpenAI call failed: " + str(e))
 

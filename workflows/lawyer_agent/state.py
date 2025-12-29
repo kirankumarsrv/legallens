@@ -50,6 +50,10 @@ class LawyerState(TypedDict):
     # Evidence Ingestion (NEW)
     evidence_files: Optional[List[str]]
     evidence_text: Optional[str]
+    # Detected language of evidence (e.g., "hi", "ta", "en")
+    detected_language: Optional[str]
+    # Human-readable language name (e.g., "Hindi", "Tamil", "English")
+    source_language_name: Optional[str]
     # Extracted entities from evidence (persons, dates, sections, firs...)
     entities: Optional[Dict[str, Any]]
     # Timeline constructed from dates and entities

@@ -1,0 +1,46 @@
+FIRST INFORMATION REPORT (FIR) - MULTILINGUAL TEST
+
+=== ENGLISH SECTION ===
+Police Station: Cyber Crime Cell, New Delhi
+FIR Number: 12345/2024
+Date of Registration: October 15, 2024
+This is a criminal case involving unauthorized access to personal data.
+
+=== HINDI SECTION ===
+पुलिस स्टेशन: साइबर अपराध प्रकोष्ठ, नई दिल्ली
+एफआईआर संख्या: 12345/2024
+पंजीकरण की तारीख: 15 अक्टूबर 2024
+यह व्यक्तिगत डेटा तक अनधिकृत पहुंच से संबंधित एक आपराधिक मामला है।
+
+=== SPANISH SECTION ===
+Estación de Policía: Célula de Cibercrimen, Nueva Delhi
+Número de FIR: 12345/2024
+Fecha de Registro: 15 de octubre de 2024
+Este es un caso criminal que implica acceso no autorizado a datos personales.
+
+=== FRENCH SECTION ===
+Poste de police: Cellule de Cybercriminalité, New Delhi
+Numéro FIR: 12345/2024
+Date d'enregistrement: 15 octobre 2024
+Il s'agit d'une affaire criminelle impliquant un accès non autorisé à des données personnelles.
+
+=== TAMIL SECTION ===
+போலீஸ் நிலையம்: சைபர் குற்றச் செல், நியூ டெல்லி
+எफ்.ஐ.ஆர் எண்: 12345/2024
+பதிவு தேதி: அக்டோபர் 15, 2024
+இது ব্যক্তিগত ডেটায় অননুমোদিত প্রবেশের সাথে জড়িত একটি অপরাধী মামলা।
+
+=== GERMAN SECTION ===
+Polizeistation: Abteilung für Cyberkriminalität, Neu-Delhi
+FIR-Nummer: 12345/2024
+Registrierungsdatum: 15. Oktober 2024
+Dies ist ein Straffall, der sich auf unbefugten Zugriff auf persönliche Daten bezieht.
+
+=== PORTUGUESE SECTION ===
+Delegacia de Polícia: Célula de Crimes Cibernéticos, Nova Delhi
+Número FIR: 12345/2024
+Data de Registro: 15 de outubro de 2024
+Este é um caso criminal envolvendo acesso não autorizado a dados pessoais.
+
+=== COMPLAINT DETAILS ===
+The complainant is Rajesh Kumar, a software engineer, aged 35 years. He works at TechCorp India Pvt Ltd as a Senior Software Engineer for the past 8 years.

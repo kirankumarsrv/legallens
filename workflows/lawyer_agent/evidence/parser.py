@@ -6,7 +6,7 @@ Uses existing TextExtractor module.
 """
 
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from modules.text_extractor import TextExtractor
 
 # Optional OCR imports
@@ -18,16 +18,54 @@ try:
 except Exception:
     OCR_AVAILABLE = False
 
+# Optional language detection
+try:
+    from langdetect import detect_langs  # type: ignore
+    LANG_DETECT_AVAILABLE = True
+except Exception:
+    LANG_DETECT_AVAILABLE = False
 
-def _ocr_image(path: Path) -> str:
+
+TESSERACT_LANG_MAP = {
+    "hi": "hin",
+    "en": "eng",
+    "bn": "ben",
+    "mr": "mar",
+    "gu": "guj",
+    "ta": "tam",
+    "te": "tel",
+    "kn": "kan",
+    "ml": "mal",
+    "or": "ory",
+    "pa": "pan",
+    "ur": "urd",
+}
+
+
+def _detect_lang_from_text(text: str) -> Optional[str]:
+    if not text or not LANG_DETECT_AVAILABLE:
+        return None
+    try:
+        langs = detect_langs(text)
+        if not langs:
+            return None
+        top = langs[0].lang
+        return TESSERACT_LANG_MAP.get(top)
+    except Exception:
+        return None
+
+
+def _ocr_image(path: Path, lang: Optional[str] = None) -> str:
     try:
         img = Image.open(path)
-        return pytesseract.image_to_string(img)
+        if lang and OCR_AVAILABLE:
+            return pytesseract.image_to_string(img, lang=lang)
+        return pytesseract.image_to_string(img) if OCR_AVAILABLE else ""
     except Exception:
         return ""
 
 
-def _ocr_pdf(path: Path) -> str:
+def _ocr_pdf(path: Path, lang: Optional[str] = None) -> str:
     texts = []
     try:
         # Allow explicit poppler path via env var for Windows users
@@ -45,7 +83,10 @@ def _ocr_pdf(path: Path) -> str:
             pytesseract.pytesseract.tesseract_cmd = environ.get("TESSERACT_CMD")
 
         for p in pages:
-            texts.append(pytesseract.image_to_string(p))
+            if lang:
+                texts.append(pytesseract.image_to_string(p, lang=lang))
+            else:
+                texts.append(pytesseract.image_to_string(p))
     except Exception:
         return ""
     return "\n\n".join(texts)
@@ -74,10 +115,16 @@ def parse_evidence(files: List[Path]) -> str:
                 # If PDF text extraction yields very little, assume scanned PDF and try OCR
                 if (not text or len(text.strip()) < 200) and OCR_AVAILABLE:
                     print(f"🔎 Low text from PDF; attempting OCR on {file.name}...")
-                    ocr_text = _ocr_pdf(file)
+                    # Try to detect language from filename or partial text first
+                    lang_code = None
+                    detected = _detect_lang_from_text(text)
+                    if detected:
+                        lang_code = detected
+
+                    ocr_text = _ocr_pdf(file, lang=lang_code)
                     if ocr_text and len(ocr_text.strip()) > len(text.strip()):
                         text = ocr_text
-                        print(f"🖨️ OCR completed for {file.name} ({len(text)} chars)")
+                        print(f"🖨️ OCR completed for {file.name} ({len(text)} chars) [lang={lang_code}]")
                     else:
                         print(f"   ⚠️ OCR did not improve extraction for {file.name}")
                 texts.append(text)
@@ -89,7 +136,8 @@ def parse_evidence(files: List[Path]) -> str:
                 print(f"📋 Parsed text: {file.name} ({len(text)} chars)")
             elif file.suffix.lower() in [".png", ".jpg", ".jpeg", ".tiff", ".bmp"]:
                 if OCR_AVAILABLE:
-                    text = _ocr_image(file)
+                    # Attempt language detection from filename or prior text not available here; pass None
+                    text = _ocr_image(file, None)
                     texts.append(text)
                     print(f"🖼️ OCR image: {file.name} ({len(text)} chars)")
                 else:

@@ -9,6 +9,10 @@ This is the FIRST phase: ingest private evidence into session state.
 
 from workflows.lawyer_agent.evidence.loader import load_evidence_files
 from workflows.lawyer_agent.evidence.parser import parse_evidence
+from workflows.lawyer_agent.nodes.language_detection import (
+    detect_language_with_confidence,
+    LANGUAGE_NAMES,
+)
 from workflows.lawyer_agent.state import LawyerState
 
 
@@ -50,14 +54,34 @@ def evidence_ingest_node(state: LawyerState) -> LawyerState:
     evidence_text = parse_evidence(files)
     state["evidence_text"] = evidence_text
     
+    # Detect language of evidence
+    print("🌐 Detecting language...")
+    lang_result = detect_language_with_confidence(evidence_text)
+    detected_lang = lang_result.get("primary_language")
+    lang_name = lang_result.get("primary_language_name", "Unknown")
+    confidence = lang_result.get("confidence", 0)
+    
+    state["detected_language"] = detected_lang
+    state["source_language_name"] = lang_name
+    
+    if detected_lang:
+        print(f"   ✅ Language detected: {lang_name} ({detected_lang}) - {confidence:.0%} confidence")
+        if confidence < 0.7:
+            print(f"   ⚠️  Low confidence ({confidence:.0%}). Results may be inaccurate.")
+    else:
+        print(f"   ⚠️  Language detection failed. Defaulting to English.")
+        state["detected_language"] = "en"
+        state["source_language_name"] = "English"
+    
     # Audit trail
     if state.get("reasoning_trace") is None:
         state["reasoning_trace"] = []
     
     state["reasoning_trace"].append(
-        f"PHASE 0: Loaded and parsed {len(files)} evidence file(s). Total: {len(evidence_text)} chars"
+        f"PHASE 0: Loaded and parsed {len(files)} evidence file(s). Total: {len(evidence_text)} chars. "
+        f"Language: {lang_name} ({detected_lang}, {confidence:.0%} confidence)"
     )
     
-    print(f"   ✅ Evidence loaded into session state\n")
+    print(f"   ✅ Evidence loaded and language detected\n")
     
     return state

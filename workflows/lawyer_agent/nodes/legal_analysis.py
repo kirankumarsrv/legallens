@@ -2,13 +2,15 @@
 Phase 2: Legal Analysis Node
 
 Retrieves statutes + precedents.
-Performs structured legal reasoning.
+Performs structured legal reasoning with multilingual tool support.
 
 Outputs arguments, counter-arguments, statutory interpretation.
+Tools available: legal_translator, extract_legal_terms (LLM can call if needed)
 """
 
 from workflows.lawyer_agent.retrieval.statutes import retrieve_statutes
 from workflows.lawyer_agent.retrieval.precedents import retrieve_precedents
+from workflows.lawyer_agent.tools import get_all_lawyer_agent_tools
 from workflows.lawyer_agent.state import LawyerState
 
 
@@ -34,6 +36,11 @@ def legal_analysis_node(state: LawyerState, chroma_stores: dict, embedding_model
     
     print("\n⚖️  PHASE 2: LEGAL ANALYSIS")
     print("   (Statutes → Precedents → Reasoning)\n")
+    
+    # Get tools available to LLM (for multilingual support)
+    tools = get_all_lawyer_agent_tools()
+    if tools:
+        print(f"   📦 Tools available: {', '.join([t.name for t in tools])}")
     
     # Stage 1: Retrieve statutes
     statutes = retrieve_statutes(
@@ -114,7 +121,18 @@ def legal_analysis_node(state: LawyerState, chroma_stores: dict, embedding_model
 
 **TONE:** Professional, neutral, analytical."""
 
-    analysis = llm.generate(prompt)
+    # Add language context if evidence is not in English
+    if state.get("detected_language") and state["detected_language"] != "en":
+        language_name = state.get("source_language_name", "Unknown")
+        prompt += (f"\n\n**IMPORTANT NOTE:** The original evidence is in {language_name}. "
+                   f"Tools are available if you need translation or term extraction for clarity.")
+    
+    # Call LLM with tools
+    try:
+        analysis = llm.generate(prompt, tools=tools, tool_choice="auto") if tools else llm.generate(prompt)
+    except TypeError:
+        # Fallback for LLM implementations that don't support tools parameter
+        analysis = llm.generate(prompt)
     
     # Update state
     state["analysis"] = analysis

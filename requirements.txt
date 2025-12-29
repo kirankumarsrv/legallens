@@ -40,6 +40,9 @@ pydantic
 requests
 tqdm
 
+# Language detection for multilingual OCR
+langdetect
+
 # Development & Testing
 pytest
 pytest-cov
