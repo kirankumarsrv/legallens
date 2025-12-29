@@ -11,6 +11,10 @@ Test Case Scenarios:
 
 import sys
 import os
+from dotenv import load_dotenv
+
+# Load .env file first
+load_dotenv()
 
 # Add parent to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
