@@ -1,9 +1,11 @@
 """
 Tool-RAG Tools Module
 
-Implements metadata-first retrieval strategy:
-1. Metadata lookup - identify relevant years and cases
-2. Targeted FAISS - retrieve only from selected years
+Provides yearwise FAISS retrieval utilities. When `years` is not
+provided, the retrieval will scan yearwise FAISS indexes from
+1950 up to min(current_year, 2025). This avoids a mandatory
+metadata-first gating step and ensures comprehensive retrieval
+across yearwise indexes (at the cost of increased latency).
 """
 
 from typing import List, Dict
@@ -79,8 +81,8 @@ def metadata_lookup_tool(query: str, embedding_model, limit: int = 5) -> Dict:
 # -------------------------------------------------
 def yearwise_faiss_retrieval_tool(
     query: str,
-    years: List[int],
-    embedding_model,
+    years: List[int] = None,
+    embedding_model=None,
     k: int = 4
 ) -> List[Document]:
     """
@@ -104,17 +106,32 @@ def yearwise_faiss_retrieval_tool(
 
     retrieved_docs = []
 
+    # If no explicit years provided, scan full year range 1950..min(current,2025)
+    if not years:
+        from datetime import datetime
+        current = datetime.now().year
+        start_year = 1950
+        end_year = min(current, 2025)
+        years = list(range(start_year, end_year + 1))
+        print(f"   🔎 Scanning yearwise FAISS for years {start_year}..{end_year} (this may take time)")
+
     for year in years:
         try:
             faiss_path = f"vector_db/yearwise/{year}"
-            
+
             vs = FAISSVectorStore(embedding_model)
             vs.load(faiss_path)
-            
+
             docs = vs.similarity_search(query, k=k)
             retrieved_docs.extend(docs)
+            if docs:
+                print(f"   ✅ Retrieved {len(docs)} docs from year {year}")
+        except FileNotFoundError:
+            # index missing for this year, continue
+            continue
         except Exception as e:
             print(f"⚠️  Could not load FAISS for year {year}: {e}")
             continue
 
+    print(f"   ✅ Total retrieved documents: {len(retrieved_docs)}")
     return retrieved_docs

@@ -6,10 +6,13 @@ NO case law, NO interpretation at this stage.
 
 Like reading the FIR before going to court.
 Evidence (if provided) becomes the PRIMARY context.
+
+NEW: Uses FactStorage to prevent duplicate retrieval and track approval status.
 """
 
 from workflows.lawyer_agent.retrieval.statutes import retrieve_statutes
 from workflows.lawyer_agent.state import LawyerState
+from modules.fact_storage import FactStorage
 
 
 def fact_gathering_node(state: LawyerState, chroma_stores: dict, embedding_model) -> LawyerState:
@@ -21,8 +24,9 @@ def fact_gathering_node(state: LawyerState, chroma_stores: dict, embedding_model
         - evidence_text: Parsed text from case files (optional)
     
     Outputs to state:
-        - facts: Retrieved statutory documents
-        - facts_raw: Raw document objects
+        - facts: Retrieved statutory documents (for display)
+        - fact_storage: FactStorage instance with facts & approval tracking
+        - facts_approved_and_locked: False initially (set to True after approval)
         - reasoning_trace: Audit trail
     
     Philosophy:
@@ -30,7 +34,14 @@ def fact_gathering_node(state: LawyerState, chroma_stores: dict, embedding_model
         ✔ Facts only (no opinions)
         ✔ Statutes only (no cases)
         ✔ Pure retrieval (no logic)
+        ✔ NEW: Store facts with approval status to prevent re-retrieval
     """
+    
+    # Initialize FactStorage if not already done
+    if not state.get("fact_storage"):
+        state["fact_storage"] = FactStorage()
+    
+    fact_storage = state["fact_storage"]
     
     print("\n📋 PHASE 1: FACT GATHERING")
     print("   Objectives:")
@@ -101,16 +112,31 @@ LEGAL QUESTION:
         target_years=target_years
     )
     
+    # Store facts in FactStorage with metadata
+    for fact in facts:
+        fact_storage.add_fact(
+            content=fact.get("content", ""),
+            source=fact.get("source", "statutes"),
+            source_details={
+                "statute_section": fact.get("metadata", {}).get("section"),
+                "statute_type": fact.get("metadata", {}).get("statute_type"),
+                "full_metadata": fact.get("metadata", {})
+            },
+            relevance_score=0.7  # Default relevance
+        )
+    
     # Update state
     state["facts"] = facts
     state["facts_raw"] = [f.get("content") for f in facts]
+    state["fact_storage"] = fact_storage
+    state["facts_approved_and_locked"] = False  # Not locked until approved
     
     # Audit trail
     if state.get("reasoning_trace") is None:
         state["reasoning_trace"] = []
     
     state["reasoning_trace"].append(
-        f"PHASE 1: Retrieved {len(facts)} statute sections"
+        f"PHASE 1: Retrieved {len(facts)} statute sections (stored in FactStorage)"
     )
     
     return state

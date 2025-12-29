@@ -36,60 +36,31 @@ def retrieve_precedents(query: str, faiss_store: Any = None, embedding_model: An
     
     docs = []
     
-    print("   🏛️  METADATA-FIRST PRECEDENT RETRIEVAL")
+    print("   🏛️  YEARWISE PRECEDENT RETRIEVAL (1950→latest)")
     
     # If explicit target_years provided (from revise feedback), use them directly
     if target_years:
-        years = target_years
+        years = sorted(target_years)
         print(f"   🎯 Using explicit year constraints from feedback: {years}")
     else:
         # ============================================
-        # STEP 1: METADATA LOOKUP (MANDATORY FIRST)
+        # NEW: Direct yearwise FAISS scan from 1950 → current_year
+        # We intentionally avoid metadata-first lookups and search all
+        # yearwise FAISS indexes. This may take longer but returns
+        # more facts for the lawyer to review.
         # ============================================
-        try:
-            from modules.vector_store.chroma_vector_store import ChromaVectorStore
-
-            metadata_db = ChromaVectorStore(persist_dir="vector_db/metadata")
-
-            if not embedding_model:
-                print("   ⚠️  No embedding model provided. Skipping metadata lookup.")
-                years = []
-            else:
-                # Encode query
-                query_embedding = embedding_model.embed_query(query)
-
-                # Perform similarity search in metadata
-                results = metadata_db.collection.query(
-                    query_embeddings=[query_embedding],
-                    n_results=k,
-                    include=["metadatas", "distances"]
-                )
-
-                # Extract years
-                years = set()
-
-                if results and results["metadatas"] and results["metadatas"][0]:
-                    for metadata in results['metadatas'][0]:
-                        year = metadata.get("year")
-                        if year and str(year).isdigit():
-                            years.add(int(year))
-
-                years = sorted(list(years))
-
-                if years:
-                    print(f"   ✅ Metadata lookup: Found relevant years {years}")
-                else:
-                    print(f"   ⚠️  Metadata lookup: No relevant years found")
-
-        except Exception as e:
-            print(f"   ⚠️  Metadata lookup failed: {e}")
-            years = []
+        from datetime import datetime
+        current = datetime.now().year
+        start_year = 1950
+        end_year = min(current, 2025)
+        years = list(range(start_year, end_year + 1))
+        print(f"   🔎 Scanning yearwise FAISS for years {start_year}..{end_year} (this may take time)")
 
     # ============================================
     # STEP 2: YEARWISE FAISS RETRIEVAL (TARGETED)
     # ============================================
     if years and embedding_model:
-        print(f"   📋 Decision: SEARCH_YEARWISE_FAISS for years {years}")
+        print(f"   📋 Searching yearwise FAISS for {len(years)} year(s)")
         
         try:
             from modules.vector_store.FAISS_vector_store import FAISSVectorStore
@@ -99,22 +70,25 @@ def retrieve_precedents(query: str, faiss_store: Any = None, embedding_model: An
                 try:
                     vs = FAISSVectorStore(embedding_model=embedding_model)
                     vs.load(faiss_path)
-                    
+
                     year_docs = vs.similarity_search(query, k=k)
-                    
+
                     for doc in year_docs:
                         docs.append({
                             "content": doc.page_content,
                             "source": f"precedent_year_{year}",
-                            "metadata": getattr(doc, 'metadata', {})
+                            "metadata": getattr(doc, 'metadata', {}),
+                            "year": year
                         })
-                    
-                    print(f"   ✅ Retrieved {len(year_docs)} precedents from year {year}")
-                
+
+                    if year_docs:
+                        print(f"   ✅ Retrieved {len(year_docs)} precedents from year {year}")
+
                 except FileNotFoundError:
-                    print(f"   ⚠️  No FAISS store for year {year}")
+                    # no index for this year; continue scanning
+                    continue
                 except Exception as e:
-                    print(f"   ⚠️  Error loading year {year}: {e}")
+                    print(f"   ⚠️  Error loading year {year}: {str(e)[:80]}")
             
             # If we got results, return them
             if docs:

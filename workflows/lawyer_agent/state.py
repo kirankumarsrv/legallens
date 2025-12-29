@@ -9,10 +9,12 @@ This design ensures:
 - LangSmith compatibility
 - Complete transparency
 - Session persistence
+- Fact persistence & approval tracking
 """
 
 from typing import List, Optional, Dict, Any
 from typing_extensions import TypedDict
+from modules.fact_storage import FactStorage
 
 
 class LawyerState(TypedDict):
@@ -64,6 +66,8 @@ class LawyerState(TypedDict):
     # Phase 1: Fact Gathering
     facts: Optional[List[Dict[str, Any]]]
     facts_raw: Optional[List[Any]]
+    fact_storage: Optional[FactStorage]  # NEW: Manages fact approval status & persistence
+    facts_approved_and_locked: Optional[bool]  # NEW: Prevents re-retrieval after approval
     
     # Phase 2: Legal Analysis
     analysis: Optional[str]

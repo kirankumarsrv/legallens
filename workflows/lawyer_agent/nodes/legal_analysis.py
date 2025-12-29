@@ -20,7 +20,7 @@ def legal_analysis_node(state: LawyerState, chroma_stores: dict, embedding_model
     
     Inputs from state:
         - question: Original question
-        - facts: Statute sections from Phase 1
+        - facts: Statute sections from Phase 1 (APPROVED & LOCKED)
     
     Outputs to state:
         - analysis: Structured legal reasoning
@@ -32,25 +32,32 @@ def legal_analysis_node(state: LawyerState, chroma_stores: dict, embedding_model
         ✔ Precedents AFTER (persuasive authority)
         ✔ Structured reasoning (arguments + counter-arguments)
         ✔ Explainable (can show why each source was used)
+        ✔ NO RE-RETRIEVAL: Use approved facts from Phase 1, don't retrieve again
     """
     
     print("\n⚖️  PHASE 2: LEGAL ANALYSIS")
-    print("   (Statutes → Precedents → Reasoning)\n")
+    print("   (Using Approved Facts → Precedent Search → Reasoning)\n")
     
     # Get tools available to LLM (for multilingual support)
     tools = get_all_lawyer_agent_tools()
     if tools:
         print(f"   📦 Tools available: {', '.join([t.name for t in tools])}")
     
-    # Stage 1: Retrieve statutes
-    statutes = retrieve_statutes(
-        query=state["question"],
-        chroma_stores=chroma_stores,
-        embedding_model=embedding_model,
-        k=6
-    )
+    # CRITICAL: Get APPROVED & LOCKED facts from Phase 1
+    # DO NOT re-retrieve statutes - use what was already approved
+    fact_storage = state.get("fact_storage")
+    if fact_storage and state.get("facts_approved_and_locked"):
+        # Facts were approved and locked - use them
+        statutes = fact_storage.get_approved_facts()
+        print(f"   🔒 Using {len(statutes)} approved & locked statute facts from Phase 1")
+    else:
+        # Fallback: if no fact storage, use facts_raw from state
+        # This shouldn't happen in normal flow but provides safety
+        statutes = state.get("facts", [])
+        print(f"   ⚠️  No locked facts found. Using {len(statutes)} facts from state (SHOULD NOT HAPPEN)")
     
-    # Stage 2: Retrieve precedents
+    # Stage 2: Retrieve ONLY precedents (case law from yearwise FAISS)
+    # This is NEW retrieval (not re-retrieval) - we're adding precedent cases
     combined_query = f"{state['question']} {' '.join(state['facts_raw'][:2])}"
     # If revise_action contains year constraints, pass them to precedent retrieval
     target_years = None
@@ -65,8 +72,20 @@ def legal_analysis_node(state: LawyerState, chroma_stores: dict, embedding_model
         target_years=target_years
     )
     
+    print(f"   📚 Retrieved {len(precedents)} precedent cases for legal analysis")
+    
     # Stage 3: LLM reasoning
-    statute_text = "\n\n".join([f"[{s['source']}] {s['content']}" for s in statutes[:3]])
+    # Build statute text from approved facts
+    statute_text_parts = []
+    for s in statutes[:3]:
+        if isinstance(s, dict):
+            # Format 1: Dictionary from fact_storage
+            statute_text_parts.append(f"[{s.get('source', 'Statute')}] {s.get('content', '')}")
+        else:
+            # Format 2: Raw string from facts
+            statute_text_parts.append(f"[Statute] {str(s)[:200]}")
+    statute_text = "\n\n".join(statute_text_parts)
+    
     precedent_text = "\n\n".join([f"[Case] {p['content'][:200]}..." for p in precedents[:2]])
     
     prompt = f"""You are an expert legal analyst. Perform structured legal analysis combining statutory law with precedent.
@@ -139,9 +158,14 @@ def legal_analysis_node(state: LawyerState, chroma_stores: dict, embedding_model
     state["statutes"] = statutes
     state["precedents"] = precedents
     
+    # Mark facts as used in legal_analysis phase
+    if fact_storage:
+        for fact_id in fact_storage.approved_fact_ids:
+            fact_storage.mark_fact_used_in_phase(fact_id, "legal_analysis")
+    
     # Audit trail
     state["reasoning_trace"].append(
-        f"PHASE 2: Retrieved {len(statutes)} statutes + {len(precedents)} precedents. LLM analysis generated."
+        f"PHASE 2: Used {len(statutes)} approved statute facts + retrieved {len(precedents)} precedent cases. LLM analysis generated."
     )
     
     return state

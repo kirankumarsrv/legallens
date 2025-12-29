@@ -1,10 +1,12 @@
 """
 Tool-RAG Graph Module
 
-Defines the metadata-first LangGraph workflow.
+Defines the yearwise FAISS LangGraph workflow.
 
 Flow:
-    metadata_node → decision_node → (answer_node OR faiss_node → answer_node)
+    yearwise_faiss_node → answer_node
+    
+No mandatory metadata lookup; direct yearwise scanning from 1950..2025.
 """
 
 from typing import TypedDict, List
@@ -19,14 +21,7 @@ class ToolRAGState(TypedDict):
     """State schema for Tool-RAG workflow."""
     question: str
 
-    # metadata stage
-    years: List[int]
-    case_names: List[str]
-    summaries: List[str]
-    pdf_paths: List[str]
-
-    # decision
-    metadata_only: bool
+    # yearwise retrieval
     selected_years: List[int]
 
     # retrieval
@@ -37,103 +32,47 @@ class ToolRAGState(TypedDict):
 
 
 # -------------------------
-# NODE 1: METADATA LOOKUP
+# NODE 1: YEARWISE FAISS RETRIEVAL
 # -------------------------
-def metadata_node(state: ToolRAGState, metadata_tool, embedding_model):
+def yearwise_faiss_node(state: ToolRAGState, faiss_tool, embedding_model):
     """
-    First node: Always query metadata store.
+    First node: Perform yearwise FAISS retrieval.
     
-    This is mandatory and ALWAYS executes first.
-    Retrieves high-level information to guide routing.
+    Scans yearwise FAISS indexes from 1950..min(current_year, 2025).
+    Aggregates documents from all available year indexes.
+    If no years provided, scans full range.
     """
-    metadata = metadata_tool(state["question"], embedding_model)
-    return {
-        "years": metadata["years"],
-        "case_names": metadata["case_names"],
-        "summaries": metadata["summaries"],
-        "pdf_paths": metadata["pdf_paths"]
-    }
-
-
-# -------------------------
-# NODE 2: DECISION MAKER
-# -------------------------
-def decision_node(state: ToolRAGState, llm):
-    """
-    Second node: Decide whether metadata alone is sufficient.
+    from datetime import datetime
     
-    Uses LLM to determine:
-    - METADATA_ONLY: Answer directly from metadata summaries
-    - FAISS_REQUIRED: Perform targeted FAISS retrieval
-    """
-
-    prompt = f"""You are a legal assistant making a routing decision.
-
-Question:
-{state['question']}
-
-Available metadata summaries:
-{chr(10).join(state['summaries'])}
-
-Decide: Can the question be answered ONLY from these metadata summaries?
-
-If YES, output exactly: METADATA_ONLY
-If NO (you need detailed content), output exactly: FAISS_REQUIRED
-
-Decision:"""
-
-    decision = llm.generate(prompt).strip()
-
-    if "METADATA_ONLY" in decision:
-        return {
-            "metadata_only": True,
-            "selected_years": []
-        }
-
-    # else FAISS required
-    return {
-        "metadata_only": False,
-        "selected_years": state["years"]
-    }
-
-
-# -------------------------
-# NODE 3: TARGETED FAISS
-# -------------------------
-def faiss_node(state: ToolRAGState, faiss_tool, embedding_model):
-    """
-    Third node (conditional): Perform targeted FAISS retrieval.
+    current = datetime.now().year
+    start_year = 1950
+    end_year = min(current, 2025)
+    years = list(range(start_year, end_year + 1))
     
-    Only executes if metadata_only = False.
-    Loads FAISS indexes ONLY for selected years.
-    """
     docs = faiss_tool(
         query=state["question"],
-        years=state["selected_years"],
+        years=years,
         embedding_model=embedding_model
     )
 
-    return {"retrieved_docs": docs}
+    return {
+        "selected_years": years,
+        "retrieved_docs": docs
+    }
 
 
 # -------------------------
-# NODE 4: ANSWER GENERATION
+# NODE 2: ANSWER GENERATION
 # -------------------------
 def answer_node(state: ToolRAGState, llm):
     """
-    Final node: Generate answer using metadata OR FAISS docs.
+    Final node: Generate answer using yearwise FAISS docs.
     
-    Context source:
-    - If metadata_only=True: Use summaries
-    - If metadata_only=False: Use full FAISS documents
+    Context source: Full FAISS documents from yearwise scanning.
     """
 
-    if state["metadata_only"]:
-        context = "\n\n".join(state["summaries"])
-        context_source = "metadata summaries"
-    else:
-        context = "\n\n".join(d.page_content for d in state["retrieved_docs"])
-        context_source = "detailed documents"
+    context = "\n\n".join(d.page_content for d in state["retrieved_docs"])
+    context_source = f"yearwise FAISS documents ({len(state['retrieved_docs'])} docs)"
 
     prompt = f"""You are a legal assistant answering based on Indian law.
 Answer ONLY using the provided context. Do not add external knowledge.
@@ -156,7 +95,6 @@ Answer:"""
 # -------------------------
 def build_tool_rag_graph(
     llm,
-    metadata_tool,
     faiss_tool,
     embedding_model
 ):
@@ -164,40 +102,25 @@ def build_tool_rag_graph(
     Construct the complete Tool-RAG workflow.
     
     Nodes:
-        1. metadata → mandatory metadata lookup
-        2. decide → routing decision (metadata or FAISS)
-        3. faiss → conditional FAISS retrieval
-        4. answer → final answer generation
+        1. yearwise_faiss → scan yearwise FAISS (1950..2025)
+        2. answer → final answer generation
     
     Flow:
-        metadata → decide → (answer OR faiss) → answer
+        yearwise_faiss → answer
+    
+    No mandatory metadata lookup; direct yearwise scanning ensures comprehensive retrieval.
     """
     graph = StateGraph(ToolRAGState)
 
     # Add nodes
-    graph.add_node("metadata", lambda s: metadata_node(s, metadata_tool, embedding_model))
-    graph.add_node("decide", lambda s: decision_node(s, llm))
-    graph.add_node("faiss", lambda s: faiss_node(s, faiss_tool, embedding_model))
+    graph.add_node("yearwise_faiss", lambda s: yearwise_faiss_node(s, faiss_tool, embedding_model))
     graph.add_node("answer", lambda s: answer_node(s, llm))
 
     # Set start
-    graph.set_entry_point("metadata")
+    graph.set_entry_point("yearwise_faiss")
 
-    # Connect metadata → decide
-    graph.add_edge("metadata", "decide")
-
-    # Conditional routing from decide
-    graph.add_conditional_edges(
-        "decide",
-        lambda s: "answer" if s["metadata_only"] else "faiss",
-        {
-            "answer": "answer",
-            "faiss": "faiss"
-        }
-    )
-
-    # Connect faiss → answer
-    graph.add_edge("faiss", "answer")
+    # Connect yearwise_faiss → answer
+    graph.add_edge("yearwise_faiss", "answer")
 
     # Set finish
     graph.set_finish_point("answer")

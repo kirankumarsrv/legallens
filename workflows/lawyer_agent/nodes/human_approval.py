@@ -76,6 +76,23 @@ def human_approval_node(state: LawyerState, phase: str, llm=None, embedding_mode
         if "revise_action" in state:
             state.pop("revise_action", None)
         state["approved_phase"] = phase
+        
+        # CRITICAL: If approving facts, lock them to prevent re-retrieval
+        if phase == "facts":
+            fact_storage = state.get("fact_storage")
+            if fact_storage:
+                # Approve any pending facts as part of the human "approve" action,
+                # then lock approved facts so downstream phases won't re-run retrieval.
+                pending = fact_storage.get_pending_facts()
+                for f in pending:
+                    fact_storage.approve_fact(f["id"])
+
+                # Lock approved facts
+                locked_facts = fact_storage.lock_approved_facts()
+                state["facts_approved_and_locked"] = True
+                state["approved_facts_count"] = len(locked_facts)
+                print(f"   🔒 {len(locked_facts)} facts approved, locked and frozen for analysis phase.\n")
+        
         print(f"   ✅ Phase '{phase}' approved. Continuing...\n")
         return state
     

@@ -1,8 +1,9 @@
 """
 Phase 3: Prediction Node
 
-Retrieves similar cases using METADATA-FIRST approach.
-FAISS-based pattern matching with targeted year selection.
+Retrieves similar cases using yearwise FAISS scanning.
+Direct year scanning from 1950..2025 with fallback to global FAISS.
+FAISS-based pattern matching for outcome prediction.
 
 Outputs: Probability of favorable/unfavorable outcome.
 """
@@ -13,7 +14,7 @@ from workflows.lawyer_agent.state import LawyerState
 
 def prediction_node(state: LawyerState, faiss_store, llm, embedding_model=None) -> LawyerState:
     """
-    Third phase: Outcome prediction using METADATA-FIRST approach.
+    Third phase: Outcome prediction using yearwise FAISS scanning.
     
     Inputs from state:
         - analysis: Legal analysis from Phase 2
@@ -25,8 +26,8 @@ def prediction_node(state: LawyerState, faiss_store, llm, embedding_model=None) 
         - prediction_confidence: Confidence score (0-1)
     
     Philosophy:
-        ✔ METADATA-FIRST routing
-        ✔ PATTERN MATCHING from relevant years only
+        ✔ YEARWISE FAISS scanning (1950..2025)
+        ✔ PATTERN MATCHING from all available years
         ✔ Historical trends, not new arguments
         ✔ Probabilistic (not deterministic)
         ✔ For decision-making, not persuasion
