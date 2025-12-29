@@ -35,6 +35,15 @@ numpy
 pandas
 scikit-learn
 
+# Web Search Tools (STEP 2: Multi-Source Retriever)
+tavily-python          # Tavily Search (best for legal research)
+google-search-results  # Google Search via SerpAPI
+duckduckgo-search      # DuckDuckGo (free, no API key needed)
+
+# Research Papers (Arxiv, PDFs)
+arxiv                  # Arxiv academic paper search
+pypdf                  # PDF processing (already have but listed again)
+
 # Utilities
 pydantic
 requests
