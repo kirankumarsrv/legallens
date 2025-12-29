@@ -19,14 +19,14 @@ This document serves as your entry point to understand the **STEP 1 completion: 
 ## 📚 Documentation Files (Choose Your Starting Point)
 
 ### For Quick Overview (5 minutes)
-1. **Start here:** `VISUAL_SUMMARY.md`
+1. **Start here:** [VISUAL_SUMMARY.md](docs/VISUAL_SUMMARY.md)
    - Visual diagrams of before/after
    - Impact metrics
    - Architecture comparison
    - Quick stats
 
 ### For Hands-On Implementation (15 minutes)
-2. **Next:** `QUICK_REFERENCE.md`
+2. **Next:** [QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)
    - Problem in 30 seconds
    - Code changes summary
    - How to test
@@ -34,7 +34,7 @@ This document serves as your entry point to understand the **STEP 1 completion: 
    - Debugging tips
 
 ### For Technical Deep Dive (30 minutes)
-3. **Then:** `STEP_1_FIX_COMPLETION.md`
+3. **Then:** [STEP_1_FIX_COMPLETION.md](docs/STEP_1_FIX_COMPLETION.md)
    - Detailed problem statement
    - Complete solution design
    - Code changes explained
@@ -43,7 +43,7 @@ This document serves as your entry point to understand the **STEP 1 completion: 
    - Verification checklist
 
 ### For Integration & Testing (20 minutes)
-4. **And:** `STEP_1_INTEGRATION_CHECKLIST.md`
+4. **And:** [STEP_1_INTEGRATION_CHECKLIST.md](docs/STEP_1_INTEGRATION_CHECKLIST.md)
    - Completed items list
    - Test results
    - Code quality checks
@@ -52,7 +52,7 @@ This document serves as your entry point to understand the **STEP 1 completion: 
    - Next steps
 
 ### For Debugging Issues (30 minutes)
-5. **If needed:** `DEBUGGING_GUIDE.md`
+5. **If needed:** [DEBUGGING_GUIDE.md](docs/DEBUGGING_GUIDE.md)
    - Common issues & solutions
    - Debugging tools
    - Integration testing checklist
@@ -61,7 +61,7 @@ This document serves as your entry point to understand the **STEP 1 completion: 
    - Gotchas to avoid
 
 ### For Project Planning (45 minutes)
-6. **For next phase:** `STEP_2_PERSISTENCE_PLAN.md`
+6. **For next phase:** [STEP_2_PERSISTENCE_PLAN.md](docs/STEP_2_PERSISTENCE_PLAN.md)
    - STEP 2 overview
    - Problem to solve
    - Solution design (4 components)
@@ -70,7 +70,7 @@ This document serves as your entry point to understand the **STEP 1 completion: 
    - Success criteria
 
 ### For Complete Picture (60 minutes)
-7. **For overview:** `WORKFLOW_REFINEMENT_SUMMARY_UPDATED.md`
+7. **For overview:** [WORKFLOW_REFINEMENT_SUMMARY_UPDATED.md](docs/WORKFLOW_REFINEMENT_SUMMARY_UPDATED.md)
    - Executive summary
    - All steps overview
    - Architecture overview
@@ -79,7 +79,7 @@ This document serves as your entry point to understand the **STEP 1 completion: 
    - References
 
 ### For Deliverables (10 minutes)
-8. **Final check:** `DELIVERABLES_SUMMARY.md`
+8. **Final check:** [DELIVERABLES_SUMMARY.md](docs/DELIVERABLES_SUMMARY.md)
    - All files delivered
    - Code modifications
    - Test results
@@ -91,25 +91,25 @@ This document serves as your entry point to understand the **STEP 1 completion: 
 ## 🔍 Quick Navigation
 
 ### "I want to understand what was fixed"
-→ Read: `VISUAL_SUMMARY.md` then `STEP_1_FIX_COMPLETION.md`
+→ Read: [VISUAL_SUMMARY.md](docs/VISUAL_SUMMARY.md) then [STEP_1_FIX_COMPLETION.md](docs/STEP_1_FIX_COMPLETION.md)
 
 ### "I want to test the fix"
-→ Read: `QUICK_REFERENCE.md` then run `test_fact_locking.py`
+→ Read: [QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md) then run `test_fact_locking.py`
 
 ### "I want to integrate the code"
-→ Read: `STEP_1_INTEGRATION_CHECKLIST.md` then `DEBUGGING_GUIDE.md`
+→ Read: [STEP_1_INTEGRATION_CHECKLIST.md](docs/STEP_1_INTEGRATION_CHECKLIST.md) then [DEBUGGING_GUIDE.md](docs/DEBUGGING_GUIDE.md)
 
 ### "I want to understand for code review"
-→ Read: `STEP_1_FIX_COMPLETION.md` then review code files
+→ Read: [STEP_1_FIX_COMPLETION.md](docs/STEP_1_FIX_COMPLETION.md) then review code files
 
 ### "I want to plan the next step"
-→ Read: `STEP_2_PERSISTENCE_PLAN.md`
+→ Read: [STEP_2_PERSISTENCE_PLAN.md](docs/STEP_2_PERSISTENCE_PLAN.md)
 
 ### "I'm having issues"
-→ Read: `DEBUGGING_GUIDE.md` then `QUICK_REFERENCE.md`
+→ Read: [DEBUGGING_GUIDE.md](docs/DEBUGGING_GUIDE.md) then [QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)
 
 ### "I need the full picture"
-→ Read: `WORKFLOW_REFINEMENT_SUMMARY_UPDATED.md`
+→ Read: [WORKFLOW_REFINEMENT_SUMMARY_UPDATED.md](docs/WORKFLOW_REFINEMENT_SUMMARY_UPDATED.md)
 
 ---
 
@@ -192,7 +192,7 @@ Verified:
 - [ ] Add file I/O to FactStorage
 - [ ] Test session persistence
 
-See: `STEP_2_PERSISTENCE_PLAN.md`
+See: [STEP_2_PERSISTENCE_PLAN.md](docs/STEP_2_PERSISTENCE_PLAN.md)
 
 ### STEP 3 (Future - PLANNED 📋)
 - [ ] Integration testing
@@ -240,14 +240,14 @@ legal_analysis (use locked facts, no re-retrieval)
 
 | File | Purpose | Read Time | Audience |
 |------|---------|-----------|----------|
-| `VISUAL_SUMMARY.md` | Quick visual overview | 5 min | Everyone |
-| `QUICK_REFERENCE.md` | Developer quick-start | 15 min | Developers |
-| `STEP_1_FIX_COMPLETION.md` | Technical details | 30 min | Technical team |
-| `DEBUGGING_GUIDE.md` | Troubleshooting | 30 min | Developers, QA |
-| `STEP_1_INTEGRATION_CHECKLIST.md` | Integration & deployment | 20 min | DevOps, QA |
-| `STEP_2_PERSISTENCE_PLAN.md` | Next phase planning | 45 min | Project team |
-| `WORKFLOW_REFINEMENT_SUMMARY_UPDATED.md` | Complete overview | 60 min | Project leads |
-| `DELIVERABLES_SUMMARY.md` | What was delivered | 10 min | Stakeholders |
+| [VISUAL_SUMMARY.md](docs/VISUAL_SUMMARY.md) | Quick visual overview | 5 min | Everyone |
+| [QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md) | Developer quick-start | 15 min | Developers |
+| [STEP_1_FIX_COMPLETION.md](docs/STEP_1_FIX_COMPLETION.md) | Technical details | 30 min | Technical team |
+| [DEBUGGING_GUIDE.md](docs/DEBUGGING_GUIDE.md) | Troubleshooting | 30 min | Developers, QA |
+| [STEP_1_INTEGRATION_CHECKLIST.md](docs/STEP_1_INTEGRATION_CHECKLIST.md) | Integration & deployment | 20 min | DevOps, QA |
+| [STEP_2_PERSISTENCE_PLAN.md](docs/STEP_2_PERSISTENCE_PLAN.md) | Next phase planning | 45 min | Project team |
+| [WORKFLOW_REFINEMENT_SUMMARY_UPDATED.md](docs/WORKFLOW_REFINEMENT_SUMMARY_UPDATED.md) | Complete overview | 60 min | Project leads |
+| [DELIVERABLES_SUMMARY.md](docs/DELIVERABLES_SUMMARY.md) | What was delivered | 10 min | Stakeholders |
 
 ### Code Files
 
@@ -264,23 +264,23 @@ legal_analysis (use locked facts, no re-retrieval)
 ## 🎓 Learning Path
 
 ### For New Developers
-1. Start: `VISUAL_SUMMARY.md`
-2. Learn: `QUICK_REFERENCE.md`
-3. Deep-dive: `STEP_1_FIX_COMPLETION.md`
+1. Start: [VISUAL_SUMMARY.md](docs/VISUAL_SUMMARY.md)
+2. Learn: [QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)
+3. Deep-dive: [STEP_1_FIX_COMPLETION.md](docs/STEP_1_FIX_COMPLETION.md)
 4. Practice: Run `test_fact_locking.py`
 5. Debug: `DEBUGGING_GUIDE.md`
 
 ### For Code Reviewers
-1. Start: `STEP_1_FIX_COMPLETION.md`
+1. Start: [STEP_1_FIX_COMPLETION.md](docs/STEP_1_FIX_COMPLETION.md)
 2. Review: Code files in order
 3. Verify: `STEP_1_INTEGRATION_CHECKLIST.md`
 4. Test: Run test suite
 5. Approve: ✅
 
 ### For Project Managers
-1. Start: `WORKFLOW_REFINEMENT_SUMMARY_UPDATED.md`
-2. Check: `DELIVERABLES_SUMMARY.md`
-3. Plan: `STEP_2_PERSISTENCE_PLAN.md`
+1. Start: [WORKFLOW_REFINEMENT_SUMMARY_UPDATED.md](docs/WORKFLOW_REFINEMENT_SUMMARY_UPDATED.md)
+2. Check: [DELIVERABLES_SUMMARY.md](docs/DELIVERABLES_SUMMARY.md)
+3. Plan: [STEP_2_PERSISTENCE_PLAN.md](docs/STEP_2_PERSISTENCE_PLAN.md)
 4. Review: Timeline and metrics
 
 ---
@@ -290,7 +290,7 @@ legal_analysis (use locked facts, no re-retrieval)
 ### For Reviewers
 ```bash
 # 1. Read the visual summary
-cat VISUAL_SUMMARY.md
+cat docs/VISUAL_SUMMARY.md
 
 # 2. Run the test
 cd c:\Users\kiran\Desktop\law ai
@@ -303,13 +303,13 @@ code workflows/lawyer_agent/nodes/human_approval.py
 code workflows/lawyer_agent/nodes/legal_analysis.py
 
 # 4. Read the checklist
-cat STEP_1_INTEGRATION_CHECKLIST.md
+cat docs/STEP_1_INTEGRATION_CHECKLIST.md
 ```
 
 ### For Developers
 ```bash
 # 1. Read quick reference
-cat QUICK_REFERENCE.md
+cat docs/QUICK_REFERENCE.md
 
 # 2. Run the test
 cd c:\Users\kiran\Desktop\law ai
@@ -322,7 +322,7 @@ python workflows/lawyer_agent/test_fact_locking.py
 # - How legal_analysis.py uses locked facts
 
 # 4. Read debugging guide if you have issues
-cat DEBUGGING_GUIDE.md
+cat docs/DEBUGGING_GUIDE.md
 ```
 
 ---
@@ -349,27 +349,23 @@ cat DEBUGGING_GUIDE.md
 
 ### Getting Started
 - [ ] Read this file (you are here!)
-- [ ] Read `VISUAL_SUMMARY.md`
-- [ ] Read `QUICK_REFERENCE.md`
+- [ ] Read [VISUAL_SUMMARY.md](docs/VISUAL_SUMMARY.md)
+- [ ] Read [QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)
 
-### Understanding the Fix
-- [ ] Read `STEP_1_FIX_COMPLETION.md`
+- [ ] Read [STEP_1_FIX_COMPLETION.md](docs/STEP_1_FIX_COMPLETION.md)
 - [ ] Review code changes in modified files
 - [ ] Run test suite
 
-### Integration & Testing
-- [ ] Read `STEP_1_INTEGRATION_CHECKLIST.md`
-- [ ] Read `DEBUGGING_GUIDE.md`
+- [ ] Read [STEP_1_INTEGRATION_CHECKLIST.md](docs/STEP_1_INTEGRATION_CHECKLIST.md)
+- [ ] Read [DEBUGGING_GUIDE.md](docs/DEBUGGING_GUIDE.md)
 - [ ] Integrate code into main branch
 - [ ] Run full workflow test
 
-### Planning Next Steps
-- [ ] Read `STEP_2_PERSISTENCE_PLAN.md`
+- [ ] Read [STEP_2_PERSISTENCE_PLAN.md](docs/STEP_2_PERSISTENCE_PLAN.md)
 - [ ] Create STEP 2 implementation plan
 - [ ] Assign resources
 
-### Final Review
-- [ ] Read `DELIVERABLES_SUMMARY.md`
+- [ ] Read [DELIVERABLES_SUMMARY.md](docs/DELIVERABLES_SUMMARY.md)
 - [ ] Verify all deliverables
 - [ ] Sign off on STEP 1
 
