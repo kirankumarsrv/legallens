@@ -51,12 +51,20 @@ def build_lawyer_agent_graph(dependencies: dict) -> StateGraph:
     # Phase 0: Evidence Ingestion (ENTRY POINT - NEW)
     graph.add_node("evidence", evidence_ingest_node)
     
-    # Phase 1: Fact Gathering
+    # Phase 1: Fact Gathering (with multi-source retrieval enabled)
     def fact_gathering_wrapper(state: LawyerState) -> LawyerState:
+        import os
+        enable_web_search = os.getenv("ENABLE_WEB_SEARCH", "true").lower() == "true"
+        enable_research_papers = os.getenv("ENABLE_RESEARCH_PAPERS", "true").lower() == "true"
+        pdf_directory = os.getenv("PDF_RESEARCH_DIRECTORY", "./research_papers")
+        
         return fact_gathering_node(
             state,
             dependencies["chroma_stores"],
-            dependencies["embedding_model"]
+            dependencies["embedding_model"],
+            enable_web_search=enable_web_search,
+            enable_research_papers=enable_research_papers,
+            pdf_directory=pdf_directory
         )
     
     graph.add_node("fact_gathering", fact_gathering_wrapper)
