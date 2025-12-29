@@ -54,6 +54,8 @@ class LawyerState(TypedDict):
     entities: Optional[Dict[str, Any]]
     # Timeline constructed from dates and entities
     timeline: Optional[List[Dict[str, Any]]]
+    # Cross-evidence contradictions (list of issues for human review)
+    contradictions: Optional[List[Dict[str, Any]]]
     
     # Phase 1: Fact Gathering
     facts: Optional[List[Dict[str, Any]]]

@@ -20,6 +20,7 @@ from workflows.lawyer_agent.nodes.evidence_ingest import evidence_ingest_node
 from workflows.lawyer_agent.nodes.entity_extraction import entity_extraction_node
 from workflows.lawyer_agent.nodes.role_classification import role_classification_node
 from workflows.lawyer_agent.nodes.timeline_construction import timeline_construction_node
+from workflows.lawyer_agent.nodes.contradiction_detection import contradiction_detection_node
 from workflows.lawyer_agent.nodes.fact_gathering import fact_gathering_node
 from workflows.lawyer_agent.nodes.legal_analysis import legal_analysis_node
 from workflows.lawyer_agent.nodes.prediction import prediction_node
@@ -71,6 +72,9 @@ def build_lawyer_agent_graph(dependencies: dict) -> StateGraph:
 
     # Phase 1.3: Timeline Construction (order events chronologically)
     graph.add_node("timeline", timeline_construction_node)
+
+    # Phase 1.4: Cross-evidence Contradiction Detection
+    graph.add_node("contradictions", contradiction_detection_node)
     
     # Gate 1: Approve facts
     def approve_facts(state: LawyerState) -> LawyerState:
@@ -137,7 +141,8 @@ def build_lawyer_agent_graph(dependencies: dict) -> StateGraph:
     graph.add_edge("evidence", "entities")
     graph.add_edge("entities", "roles")
     graph.add_edge("roles", "timeline")
-    graph.add_edge("timeline", "fact_gathering")
+    graph.add_edge("timeline", "contradictions")
+    graph.add_edge("contradictions", "fact_gathering")
     graph.add_edge("fact_gathering", "approve_facts")
     graph.add_edge("approve_facts", "legal_analysis")
     graph.add_edge("legal_analysis", "approve_analysis")

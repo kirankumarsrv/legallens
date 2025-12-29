@@ -45,3 +45,6 @@ pytest
 pytest-cov
 black
 flake8
+# Optional OCR dependencies (install only if OCR needed)
+pdf2image
+pytesseract

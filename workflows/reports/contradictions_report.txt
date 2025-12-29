@@ -1,0 +1,9 @@
+Cross-Evidence Contradictions Report
+=================================
+
+Evidence files: ['evidence_samples/sample_fir.txt', 'evidence_samples/sample_charge_sheet.txt', 'evidence_samples/scanned_sample.pdf']
+
+1. {'entity_type': 'sections', 'values': [{'value': '292', 'files': ['evidence_samples\\sample_fir.txt']}, {'value': '354C', 'files': ['evidence_samples\\sample_fir.txt', 'evidence_samples\\sample_charge_sheet.txt']}, {'value': '406', 'files': ['evidence_samples\\sample_fir.txt', 'evidence_samples\\sample_charge_sheet.txt']}, {'value': '420', 'files': ['evidence_samples\\sample_fir.txt']}, {'value': '503', 'files': ['evidence_samples\\sample_fir.txt', 'evidence_samples\\sample_charge_sheet.txt']}, {'value': '43', 'files': ['evidence_samples\\sample_fir.txt', 'evidence_samples\\sample_charge_sheet.txt']}, {'value': '66', 'files': ['evidence_samples\\sample_charge_sheet.txt']}]}
+
+2. {'entity_type': 'dates', 'values': [{'value': 'October 15, 2024', 'files': ['evidence_samples\\sample_fir.txt']}, {'value': 'October 15', 'files': ['evidence_samples\\sample_fir.txt']}, {'value': 'July 2024', 'files': ['evidence_samples\\sample_fir.txt', 'evidence_samples\\sample_fir.txt']}, {'value': 'October 2024', 'files': ['evidence_samples\\sample_fir.txt', 'evidence_samples\\sample_fir.txt', 'evidence_samples\\sample_charge_sheet.txt']}, {'value': 'November 10, 2024', 'files': ['evidence_samples\\sample_charge_sheet.txt']}, {'value': 'November 10', 'files': ['evidence_samples\\sample_charge_sheet.txt']}]}
+
