@@ -2,8 +2,9 @@
 LangGraph for Lawyer Agent
 
 Architecture:
-    facts → approve_facts → analysis → approve_analysis → prediction → approve_prediction → draft → approve_draft
+    evidence → facts → approve_facts → analysis → approve_analysis → prediction → approve_prediction → draft → approve_draft
 
+Entry point is EVIDENCE INGESTION (Phase 0) - loads user-uploaded case files.
 Each arrow is a conditional edge:
     - approve: Continue
     - revise: Backtrack (not implemented here)
@@ -15,6 +16,10 @@ Human approval gate between each phase.
 
 from langgraph.graph import StateGraph, START, END
 from workflows.lawyer_agent.state import LawyerState
+from workflows.lawyer_agent.nodes.evidence_ingest import evidence_ingest_node
+from workflows.lawyer_agent.nodes.entity_extraction import entity_extraction_node
+from workflows.lawyer_agent.nodes.role_classification import role_classification_node
+from workflows.lawyer_agent.nodes.timeline_construction import timeline_construction_node
 from workflows.lawyer_agent.nodes.fact_gathering import fact_gathering_node
 from workflows.lawyer_agent.nodes.legal_analysis import legal_analysis_node
 from workflows.lawyer_agent.nodes.prediction import prediction_node
@@ -42,6 +47,9 @@ def build_lawyer_agent_graph(dependencies: dict) -> StateGraph:
     
     # Define nodes
     
+    # Phase 0: Evidence Ingestion (ENTRY POINT - NEW)
+    graph.add_node("evidence", evidence_ingest_node)
+    
     # Phase 1: Fact Gathering
     def fact_gathering_wrapper(state: LawyerState) -> LawyerState:
         return fact_gathering_node(
@@ -51,6 +59,18 @@ def build_lawyer_agent_graph(dependencies: dict) -> StateGraph:
         )
     
     graph.add_node("fact_gathering", fact_gathering_wrapper)
+
+    # Phase 1.1: Entity Extraction (from evidence)
+    graph.add_node("entities", entity_extraction_node)
+
+    # Phase 1.2: Role Classification (enrich persons with roles)
+    def role_classification_wrapper(state: LawyerState) -> LawyerState:
+        return role_classification_node(state, llm_manager=dependencies.get("llm"))
+    
+    graph.add_node("roles", role_classification_wrapper)
+
+    # Phase 1.3: Timeline Construction (order events chronologically)
+    graph.add_node("timeline", timeline_construction_node)
     
     # Gate 1: Approve facts
     def approve_facts(state: LawyerState) -> LawyerState:
@@ -112,7 +132,12 @@ def build_lawyer_agent_graph(dependencies: dict) -> StateGraph:
     graph.add_node("approve_draft", approve_draft)
     
     # Define edges (always sequential in this version)
-    graph.add_edge(START, "fact_gathering")
+    # Entry point: Evidence Ingestion (Phase 0) - LOADS CASE FILES FIRST
+    graph.add_edge(START, "evidence")
+    graph.add_edge("evidence", "entities")
+    graph.add_edge("entities", "roles")
+    graph.add_edge("roles", "timeline")
+    graph.add_edge("timeline", "fact_gathering")
     graph.add_edge("fact_gathering", "approve_facts")
     graph.add_edge("approve_facts", "legal_analysis")
     graph.add_edge("legal_analysis", "approve_analysis")

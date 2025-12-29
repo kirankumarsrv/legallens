@@ -1,0 +1,71 @@
+FIRST INFORMATION REPORT (FIR)
+
+Police Station: Cyber Crime Cell, New Delhi
+FIR Number: 12345/2024
+Date of Registration: October 15, 2024
+Investigating Officer: Inspector Amit Singh
+
+COMPLAINANT DETAILS:
+Name: Rajesh Kumar
+Address: 42 Sector 5, New Delhi - 110001
+Contact: 9876543210
+Occupation: Software Engineer
+Age: 35 years
+
+ACCUSED DETAILS:
+Name: TechCorp India Pvt Ltd
+Address: IT Park, NOIDA
+Represented by: Mr. Vikram Sharma (IT Manager) & Director Suresh Patel
+Occupation: Information Technology Company
+
+INCIDENT DETAILS:
+
+Date of Incident: July 2024 - October 2024
+Place of Incident: TechCorp IT Park, NOIDA
+Nature of Crime: Unauthorized access to personal data, Privacy violation, Criminal intimidation
+
+FACTS OF THE CASE:
+
+1. The complainant, Rajesh Kumar, has been employed with TechCorp India Pvt Ltd as a Senior Software Engineer for the past 8 years with unblemished record and no disciplinary action.
+
+2. During July 2024, the IT department of TechCorp installed surveillance software on all employee systems with the stated purpose of "system security and monitoring unauthorized access."
+
+3. In October 2024, the IT Manager, Mr. Vikram Sharma, casually mentioned to the complainant details about the complainant's personal health condition which was discussed in personal emails between the complainant and his doctor.
+
+4. Upon investigation by the complainant, it was discovered that:
+   - A keylogger software was installed on his official workstation
+   - The software was logging all keystrokes including personal email passwords
+   - Personal email accounts (Gmail, Yahoo) were being monitored
+   - Emails to family members, spouse, and doctor were being intercepted and logged
+   - Medical records and personal financial information were accessed
+
+5. The accused company did not:
+   - Obtain written consent from the employee
+   - Disclose the monitoring in any employee handbook or policy
+   - Inform the employee of the surveillance
+   - Provide any technical justification for monitoring personal email accounts
+
+6. The complainant has received threats of termination if the matter is escalated, constituting further criminal intimidation.
+
+EVIDENCE:
+- Email records showing personal communications accessed
+- Screenshots of keylogger software logs
+- IT Security audit report
+- Employee handbook (no mention of personal email monitoring)
+- Medical email correspondence
+- Witness statements from 3 other employees subjected to similar monitoring
+
+APPLICABLE LAWS:
+Section 292, 294 (Obscene material, Defamation)
+Section 354C (Violation of Privacy)
+Section 406 (Criminal Breach of Trust)
+Section 420 (Fraud)
+Section 503, 506 (Criminal Intimidation)
+IT Act 2000 Section 43, 66
+
+PRAYER:
+Investigation into the criminal acts of unauthorized access to private data and violation of privacy rights. Registration of case under appropriate sections and prosecution of accused.
+
+(Signature)
+Inspector Amit Singh
+Cyber Crime Cell, New Delhi

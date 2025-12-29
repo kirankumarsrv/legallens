@@ -1,10 +1,11 @@
 """
 Phase 1: Fact Gathering Node
 
-Retrieves statutory facts only.
+Retrieves statutory facts, prioritizing evidence over public law.
 NO case law, NO interpretation at this stage.
 
 Like reading the FIR before going to court.
+Evidence (if provided) becomes the PRIMARY context.
 """
 
 from workflows.lawyer_agent.retrieval.statutes import retrieve_statutes
@@ -13,10 +14,11 @@ from workflows.lawyer_agent.state import LawyerState
 
 def fact_gathering_node(state: LawyerState, chroma_stores: dict, embedding_model) -> LawyerState:
     """
-    First phase: Gather statutory material.
+    First phase: Gather statutory material, prioritizing private evidence.
     
     Inputs from state:
         - question: User's legal question
+        - evidence_text: Parsed text from case files (optional)
     
     Outputs to state:
         - facts: Retrieved statutory documents
@@ -24,6 +26,7 @@ def fact_gathering_node(state: LawyerState, chroma_stores: dict, embedding_model
         - reasoning_trace: Audit trail
     
     Philosophy:
+        ✔ Evidence FIRST (if provided)
         ✔ Facts only (no opinions)
         ✔ Statutes only (no cases)
         ✔ Pure retrieval (no logic)
@@ -34,7 +37,54 @@ def fact_gathering_node(state: LawyerState, chroma_stores: dict, embedding_model
     print("   - Extract key entities (parties, dates, legal issues)")
     print("   - Retrieve applicable statutes (Constitution, IPC, CrPC)")
     print("   - Establish factual timeline")
-    print("   - Do NOT analyze yet; just gather facts & applicable law\n")
+    print("   - Prioritize EVIDENCE over public law\n")
+    
+    # Build query: evidence FIRST, then question
+    query = state["question"]
+    if state.get("evidence_text"):
+        query = f"""
+CASE EVIDENCE (PRIMARY):
+{state['evidence_text'][:1000]}
+
+LEGAL QUESTION:
+{state['question']}
+"""
+        print(f"   📁 Evidence injected into query context ({len(state['evidence_text'])} chars)\n")
+
+    # If entities were extracted, include them to help targeted retrieval
+    if state.get("entities"):
+        try:
+            entities_summary = {k: [e['text'] for e in v] for k, v in state['entities'].items()}
+            # For persons, also include roles if available
+            if "persons" in state['entities']:
+                entities_summary["persons_with_roles"] = [
+                    f"{p['text']} ({p.get('role', 'unknown')})" 
+                    for p in state['entities']['persons']
+                ]
+        except Exception:
+            entities_summary = str(state.get('entities'))
+
+        query += f"\n\nEXTRACTED ENTITIES:\n{entities_summary}\n"
+        print(f"   🧾 Entities injected into query: {', '.join(state['entities'].keys())}\n")
+    
+    # If timeline was constructed, summarize key events
+    if state.get("timeline"):
+        timeline_summary = []
+        for event in state['timeline']:
+            date = event.get('date', 'Unknown')
+            persons = ", ".join(event.get('persons', [])[:2])  # First 2 persons
+            summary = f"{date}: {event.get('event', '')[:80]}"
+            if persons:
+                summary += f" [with {persons}]"
+            timeline_summary.append(summary)
+        
+        query += "\n\nCHRONOLOGICAL TIMELINE:\n"
+        for summary in timeline_summary[:5]:  # First 5 events
+            query += f"  • {summary}\n"
+        if len(timeline_summary) > 5:
+            query += f"  ... and {len(timeline_summary) - 5} more events\n"
+        
+        print(f"   📅 Timeline injected into query: {len(state['timeline'])} events\n")
     
     # Extract target years if provided (from revise_action)
     target_years = None
@@ -44,7 +94,7 @@ def fact_gathering_node(state: LawyerState, chroma_stores: dict, embedding_model
     
     # Retrieve statutes
     facts = retrieve_statutes(
-        query=state["question"],
+        query=query,
         chroma_stores=chroma_stores,
         embedding_model=embedding_model,
         k=6,

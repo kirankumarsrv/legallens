@@ -22,6 +22,9 @@ class LawyerState(TypedDict):
     Attributes:
         question: User's legal question
         
+        evidence_files: Paths to uploaded case files (PDFs, FIRs, etc.)
+        evidence_text: Parsed text from evidence files (session-scoped)
+        
         facts: Retrieved statutory facts (Phase 1)
         facts_raw: Raw document objects
         
@@ -43,6 +46,14 @@ class LawyerState(TypedDict):
     
     # Input
     question: str
+    
+    # Evidence Ingestion (NEW)
+    evidence_files: Optional[List[str]]
+    evidence_text: Optional[str]
+    # Extracted entities from evidence (persons, dates, sections, firs...)
+    entities: Optional[Dict[str, Any]]
+    # Timeline constructed from dates and entities
+    timeline: Optional[List[Dict[str, Any]]]
     
     # Phase 1: Fact Gathering
     facts: Optional[List[Dict[str, Any]]]

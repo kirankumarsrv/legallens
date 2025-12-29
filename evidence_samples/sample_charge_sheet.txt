@@ -1,0 +1,88 @@
+CHARGE SHEET
+
+Police Station: Cyber Crime Cell, New Delhi
+Charge Sheet Number: CS-789/2024
+Date: November 10, 2024
+Investigating Officer: Inspector Amit Singh
+
+CASE DETAILS:
+Original FIR: 12345/2024
+Petitioner: Rajesh Kumar
+Respondent: TechCorp India Pvt Ltd and others
+
+FINDINGS OF INVESTIGATION:
+
+1. UNAUTHORIZED ACCESS CONFIRMED
+   - Technical audit by forensic team confirms keylogger installation
+   - Software logs 100% of keystrokes including personal passwords
+   - Scope: Entire personal email communications (Gmail account since 2015)
+   - Duration: Minimum 3 months (July-October 2024), possibly longer
+
+2. NO EMPLOYEE CONSENT
+   - Employee handbook reviewed: NO mention of personal email monitoring
+   - No consent forms signed by complainant
+   - No notification of surveillance to employee
+   - Policy violation by company itself (states monitoring only work email)
+
+3. MEDICAL PRIVACY BREACH
+   - IT Manager disclosed to others that he "knew" about employee's health condition
+   - Evidence: Email chain between employee and cardiologist intercepted
+   - Private health information used as basis for mocking remarks
+   - Clear violation of medical confidentiality
+
+4. CRIMINAL INTENT ESTABLISHED
+   - Installation of spy software indicates deliberate action
+   - Accessing personal emails beyond scope of employment
+   - Disclosure of private information shows misuse
+   - Threats to employee following discovery confirm consciousness of guilt
+
+5. FINANCIAL DATA ACCESSED
+   - Banking and investment email communications accessed
+   - Credit card information visible in email receipts
+   - Potential identity theft risk established
+
+6. CORROBORATING EVIDENCE
+   - 3 other employees came forward with similar complaints
+   - Identical pattern of monitoring across multiple employees
+   - No legitimate business purpose established for personal email access
+
+LEGAL VIOLATIONS ESTABLISHED:
+
+Article 21, Indian Constitution - Right to Privacy (Justice K.S. Puttaswamy Judgment)
+- Established privacy as fundamental right
+- Monitoring personal communications is violation
+
+IPC Section 354C - Violation of Privacy
+- "Watching or engaging in voyeurism" defined broadly
+- Electronic surveillance is covered
+
+IPC Section 406 - Criminal Breach of Trust
+- Employer entrusted with workplace access
+- Misused for personal data collection
+
+IT Act 2000 Section 66 - Unauthorized Access
+- Accessing computer systems without authorization
+- Criminal offense with imprisonment up to 3 years
+
+IT Act 2000 Section 43 - Damage to computer systems
+- Unauthorized access and data interception
+- Civil liability + damages
+
+IPC Section 503, 506 - Criminal Intimidation
+- Threats of termination if matter escalated
+- Clear intimidation following discovery
+
+CONCLUSION:
+Evidence conclusively establishes that TechCorp India Pvt Ltd through its officials:
+1. Installed unauthorized surveillance software
+2. Accessed and monitored personal private communications
+3. Breached fundamental right to privacy
+4. Committed multiple criminal offenses
+5. Intimidated complainant to suppress investigation
+
+RECOMMENDATION:
+Charge under IPC Sections 354C, 406, 66 (IT Act) and register FIR for prosecution.
+
+(Signature)
+Inspector Amit Singh
+Investigating Officer

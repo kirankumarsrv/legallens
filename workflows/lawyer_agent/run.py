@@ -94,17 +94,20 @@ def setup_dependencies():
     }
 
 
-def run_lawyer_agent(question: str, dependencies: dict):
+def run_lawyer_agent(question: str, dependencies: dict, evidence_files: list = None):
     """
-    Run the Lawyer Agent workflow on a question.
+    Run the Lawyer Agent workflow on a question with optional case evidence.
     
     Args:
         question: Legal question
         dependencies: Initialized dependencies
+        evidence_files: Optional list of file paths (PDFs, TXT) with case evidence
     """
     
     print("\n" + "=" * 60)
     print(f"QUESTION: {question}")
+    if evidence_files:
+        print(f"EVIDENCE FILES: {evidence_files}")
     print("=" * 60)
     
     # Build graph
@@ -113,6 +116,8 @@ def run_lawyer_agent(question: str, dependencies: dict):
     # Initial state
     initial_state = LawyerState(
         question=question,
+        evidence_files=evidence_files,
+        evidence_text="",
         facts=[],
         facts_raw=[],
         analysis="",
@@ -189,10 +194,20 @@ APPLICABLE AREAS: Article 21 (Constitution), IPC provisions on privacy, Employme
     print("🧑‍⚖️  LAWYER AGENT - ENTERPRISE IMPLEMENTATION")
     print("=" * 60)
     
-    # Run first question (others commented out for brevity)
+    # Example 1: Without evidence files
+    print("\n\n📝 TEST SCENARIO 1: Without Evidence Files")
+    print("=" * 60)
     run_lawyer_agent(test_questions[0], dependencies)
     
-    # Uncomment to run all:
-    # for question in test_questions:
-    #     run_lawyer_agent(question, dependencies)
-    #     print("\n\n")
+    # Example 2: With evidence files (FIR and Charge Sheet)
+    print("\n\n📝 TEST SCENARIO 2: WITH EVIDENCE FILES (FIR + Charge Sheet)")
+    print("=" * 60)
+    evidence_files = [
+        "evidence_samples/sample_fir.txt",
+        "evidence_samples/sample_charge_sheet.txt"
+    ]
+    run_lawyer_agent(test_questions[0], dependencies, evidence_files=evidence_files)
+    
+    print("\n\n" + "=" * 60)
+    print("✅ All tests completed!")
+    print("=" * 60)
