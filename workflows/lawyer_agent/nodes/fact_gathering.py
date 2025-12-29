@@ -150,8 +150,13 @@ LEGAL QUESTION:
     if enable_web_search:
         try:
             web_retriever = FactRetrieverFactory.create_web_search_retriever()
+            # Create a cleaned query for web search
+            web_query = state["question"].replace("\n", " ").replace("  ", " ").strip()
+            if len(web_query) > 300:
+                web_query = web_query[:300]
+            
             web_facts = web_retriever.retrieve(
-                query=query,
+                query=web_query,
                 constraints={"k": 3}
             )
             fact_source_breakdown["web_search"] = len(web_facts)
@@ -169,8 +174,13 @@ LEGAL QUESTION:
                 pdf_directory,
                 embedding_model
             )
+            # Create a cleaned query for Arxiv (no newlines, special chars)
+            arxiv_query = state["question"].replace("\n", " ").replace("  ", " ").strip()
+            if len(arxiv_query) > 200:
+                arxiv_query = arxiv_query[:200]  # Keep it short for Arxiv API
+            
             paper_facts = paper_retriever.retrieve(
-                query=query,
+                query=arxiv_query,
                 constraints={"k": 3}
             )
             fact_source_breakdown["research_paper"] = len(paper_facts)
