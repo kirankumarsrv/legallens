@@ -88,5 +88,8 @@ def fact_approval_node(state: Dict[str, Any], llm=None, embedding_model=None) ->
     state["facts_approved_and_locked"] = True
     state["facts"] = fs.get_all_facts()
 
+    # Signal that facts have been edited/approved — this can trigger prediction recompute
+    state["facts_edited"] = True
+
     print("✅ Approved facts locked and ready for legal analysis.")
     return state

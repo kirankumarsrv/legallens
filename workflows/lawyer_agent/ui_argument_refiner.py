@@ -49,6 +49,8 @@ def save_argument_storage(as_store: ArgumentStorage, path: str = SESSION_FILE) -
                 session = {}
 
         session["argument_storage"] = as_store.to_dict()
+        # Signal that arguments were edited so prediction can be recomputed
+        session["arguments_edited"] = True
         with open(path, "w", encoding="utf-8") as f:
             json.dump(session, f, indent=2)
     except Exception as e:
@@ -138,6 +140,31 @@ def main():
                         st.info("Left pending")
                     save_argument_storage(as_store)
                     do_rerun()
+
+    # Prediction history & restore
+    st.sidebar.write("")
+    st.sidebar.header("Prediction History")
+    try:
+        if os.path.exists(SESSION_FILE):
+            with open(SESSION_FILE, "r", encoding="utf-8") as f:
+                session = json.load(f) or {}
+        else:
+            session = {}
+        history = session.get("prediction_history") or []
+        if not history:
+            st.sidebar.info("No prediction history available.")
+        else:
+            for idx, item in enumerate(reversed(history)):
+                display_idx = len(history) - 1 - idx
+                ts = item.get("timestamp", "?")
+                preview = (item.get("prediction") or "")[:120]
+                if st.sidebar.button(f"Restore #{display_idx} — {ts}", key=f"restore_arg_{display_idx}"):
+                    session["restore_prediction_index"] = display_idx
+                    with open(SESSION_FILE, "w", encoding="utf-8") as f:
+                        json.dump(session, f, indent=2)
+                    st.sidebar.success(f"Wrote restore index {display_idx} to session. Run workflow to apply.")
+    except Exception:
+        st.sidebar.warning("Failed to read prediction history from session file.")
 
     approved = as_store.get_approved_arguments()
     if approved:
