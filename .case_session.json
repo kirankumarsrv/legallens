@@ -2,5 +2,34 @@
   "case_id": "8a2db899-022d-431f-b906-88af77a99e49",
   "facts": {},
   "approved_fact_ids": [],
-  "rejected_fact_ids": []
+  "rejected_fact_ids": [],
+  "argument_storage": {
+    "case_id": "7e86c8a0-3e76-4ebe-bc83-6aad5518104b",
+    "arguments": {
+      "2c8a1241-4455-4823-b753-2c4b7e1c09ca": {
+        "id": "2c8a1241-4455-4823-b753-2c4b7e1c09ca",
+        "content": "Employer's monitoring without consent violates Article 21 privacy.",
+        "legal_basis": "Article 21",
+        "relevance_score": 0.95,
+        "status": "approved_locked",
+        "created_at": "2025-12-30T13:31:02.449396",
+        "updated_at": "2025-12-30T13:31:16.900537"
+      },
+      "c46c137b-4711-43c9-af69-f72ec6d4a8e0": {
+        "id": "c46c137b-4711-43c9-af69-f72ec6d4a8e0",
+        "content": "Keylogger installation may attract IPC sections re: unauthorized access.",
+        "legal_basis": "IPC",
+        "relevance_score": 0.9,
+        "status": "rejected",
+        "created_at": "2025-12-30T13:31:02.449765",
+        "updated_at": "2025-12-30T13:31:34.254653"
+      }
+    },
+    "approved_arg_ids": [
+      "2c8a1241-4455-4823-b753-2c4b7e1c09ca"
+    ],
+    "rejected_arg_ids": [
+      "c46c137b-4711-43c9-af69-f72ec6d4a8e0"
+    ]
+  }
 }

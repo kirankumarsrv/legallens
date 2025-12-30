@@ -12,6 +12,7 @@ from workflows.lawyer_agent.retrieval.statutes import retrieve_statutes
 from workflows.lawyer_agent.retrieval.precedents import retrieve_precedents
 from workflows.lawyer_agent.tools import get_all_lawyer_agent_tools
 from workflows.lawyer_agent.state import LawyerState
+from modules.argument_storage import ArgumentStorage
 
 
 def legal_analysis_node(state: LawyerState, chroma_stores: dict, embedding_model, faiss_store, llm) -> LawyerState:
@@ -157,6 +158,50 @@ def legal_analysis_node(state: LawyerState, chroma_stores: dict, embedding_model
     state["analysis"] = analysis
     state["statutes"] = statutes
     state["precedents"] = precedents
+
+    # Ensure reasoning_trace exists
+    if state.get("reasoning_trace") is None:
+        state["reasoning_trace"] = []
+
+    # Create ArgumentStorage and extract candidate arguments from analysis
+    arg_store: ArgumentStorage = state.get("argument_storage") or ArgumentStorage()
+
+    # Naive extraction: try to parse PRO-ARGUMENTS section from the analysis text
+    analysis_text = analysis if isinstance(analysis, str) else str(analysis)
+    pro_args = []
+    try:
+        lower = analysis_text.lower()
+        start_idx = lower.find("pro-arguments")
+        if start_idx == -1:
+            start_idx = lower.find("pro arguments")
+        if start_idx != -1:
+            # find end (counter-arguments or next section)
+            end_idx = lower.find("counter-arguments", start_idx)
+            if end_idx == -1:
+                # try numeric section marker
+                end_idx = lower.find("3.", start_idx)
+            section = analysis_text[start_idx:end_idx if end_idx != -1 else None]
+            # split lines and pick bullets/lines
+            for line in section.splitlines():
+                line = line.strip().lstrip("-*")
+                if not line:
+                    continue
+                # basic filter to avoid heading lines
+                if len(line) > 20:
+                    pro_args.append(line)
+    except Exception:
+        pro_args = []
+
+    # If no pro_args extracted, create a fallback single argument from analysis summary
+    if not pro_args:
+        snippet = analysis_text[:400]
+        pro_args = [f"Summary argument: {snippet}"]
+
+    # Add up to 10 arguments into storage
+    for a in pro_args[:10]:
+        arg_store.add_argument(content=a, legal_basis="")
+
+    state["argument_storage"] = arg_store
     
     # Mark facts as used in legal_analysis phase
     if fact_storage:
