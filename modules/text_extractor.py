@@ -4,7 +4,7 @@ from pypdf import PdfReader
 class TextExtractor:
     """
     Extracts text content from various document formats.
-
+ A. Build STEP 3 now - Interactive fact refiner UI (workflow nodes + state management)
     Currently supports:
     - PDF files via PyPDF (pypdf)
 

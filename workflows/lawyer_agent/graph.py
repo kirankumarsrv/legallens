@@ -22,6 +22,12 @@ from workflows.lawyer_agent.nodes.role_classification import role_classification
 from workflows.lawyer_agent.nodes.timeline_construction import timeline_construction_node
 from workflows.lawyer_agent.nodes.contradiction_detection import contradiction_detection_node
 from workflows.lawyer_agent.nodes.fact_gathering import fact_gathering_node
+from workflows.lawyer_agent.nodes.interactive_fact_refiner import (
+    retrieve_facts_node,
+    fact_display_node,
+    per_fact_chat_node,
+    fact_approval_node,
+)
 from workflows.lawyer_agent.nodes.legal_analysis import legal_analysis_node
 from workflows.lawyer_agent.nodes.prediction import prediction_node
 from workflows.lawyer_agent.nodes.drafting import drafting_node
@@ -51,23 +57,27 @@ def build_lawyer_agent_graph(dependencies: dict) -> StateGraph:
     # Phase 0: Evidence Ingestion (ENTRY POINT - NEW)
     graph.add_node("evidence", evidence_ingest_node)
     
-    # Phase 1: Fact Gathering (with multi-source retrieval enabled)
-    def fact_gathering_wrapper(state: LawyerState) -> LawyerState:
+    # Phase 1: Fact Retrieval + Interactive Refinement
+    def retrieve_facts_wrapper(state: LawyerState) -> LawyerState:
         import os
         enable_web_search = os.getenv("ENABLE_WEB_SEARCH", "true").lower() == "true"
         enable_research_papers = os.getenv("ENABLE_RESEARCH_PAPERS", "true").lower() == "true"
         pdf_directory = os.getenv("PDF_RESEARCH_DIRECTORY", "./research_papers")
-        
-        return fact_gathering_node(
+
+        return retrieve_facts_node(
             state,
             dependencies["chroma_stores"],
             dependencies["embedding_model"],
             enable_web_search=enable_web_search,
             enable_research_papers=enable_research_papers,
-            pdf_directory=pdf_directory
+            pdf_directory=pdf_directory,
         )
-    
-    graph.add_node("fact_gathering", fact_gathering_wrapper)
+
+    graph.add_node("retrieve_facts", retrieve_facts_wrapper)
+
+    # Display + per-fact interactive nodes
+    graph.add_node("fact_display", fact_display_node)
+    graph.add_node("per_fact_chat", per_fact_chat_node)
 
     # Phase 1.1: Entity Extraction (from evidence)
     graph.add_node("entities", entity_extraction_node)
@@ -86,8 +96,10 @@ def build_lawyer_agent_graph(dependencies: dict) -> StateGraph:
     
     # Gate 1: Approve facts
     def approve_facts(state: LawyerState) -> LawyerState:
-        return human_approval_node(state, "facts", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
-    
+        # First run the generic human approval gate (UI/CLI). After that, lock approved facts.
+        state = human_approval_node(state, "facts", llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+        return fact_approval_node(state, llm=dependencies.get("llm"), embedding_model=dependencies.get("embedding_model"))
+
     graph.add_node("approve_facts", approve_facts)
     
     # Phase 2: Legal Analysis
@@ -150,8 +162,10 @@ def build_lawyer_agent_graph(dependencies: dict) -> StateGraph:
     graph.add_edge("entities", "roles")
     graph.add_edge("roles", "timeline")
     graph.add_edge("timeline", "contradictions")
-    graph.add_edge("contradictions", "fact_gathering")
-    graph.add_edge("fact_gathering", "approve_facts")
+    graph.add_edge("contradictions", "retrieve_facts")
+    graph.add_edge("retrieve_facts", "fact_display")
+    graph.add_edge("fact_display", "per_fact_chat")
+    graph.add_edge("per_fact_chat", "approve_facts")
     graph.add_edge("approve_facts", "legal_analysis")
     graph.add_edge("legal_analysis", "approve_analysis")
     graph.add_edge("approve_analysis", "prediction")
