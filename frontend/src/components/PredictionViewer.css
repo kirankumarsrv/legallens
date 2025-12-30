@@ -1,0 +1,114 @@
+/* PredictionViewer.css */
+.prediction-viewer {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.prediction-header {
+  margin-bottom: 1.5rem;
+}
+
+.prediction-header h3 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.prediction-content {
+  display: grid;
+  gap: 2rem;
+}
+
+.prediction-box {
+  padding: 2rem;
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+  border-radius: 8px;
+}
+
+.prediction-text {
+  font-size: 1.1rem;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.6;
+}
+
+.confidence-meter {
+  background-color: rgba(255, 255, 255, 0.2);
+  height: 30px;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.confidence-bar {
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #2980b9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  transition: width 0.3s ease;
+}
+
+.empty-prediction {
+  text-align: center;
+  padding: 2rem;
+  color: #7f8c8d;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.history-section {
+  margin-top: 2rem;
+}
+
+.history-section h4 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+}
+
+.history-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #ecf0f1;
+  border-radius: 6px;
+  gap: 1rem;
+}
+
+.history-content {
+  flex: 1;
+}
+
+.history-text {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.history-details {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}
+
+.timestamp {
+  white-space: nowrap;
+}
+
+.confidence {
+  font-weight: 600;
+  color: #3498db;
+}
+
+.btn-restore {
+  flex-shrink: 0;
+}

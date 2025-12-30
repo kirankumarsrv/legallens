@@ -1,0 +1,76 @@
+/* FactEditor.css */
+.fact-editor {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.fact-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.fact-editor-header h3 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.fact-form {
+  background-color: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.fact-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.fact-item {
+  padding: 1.5rem;
+  border: 1px solid #ecf0f1;
+  border-radius: 6px;
+  background-color: white;
+}
+
+.fact-content {
+  margin-bottom: 1rem;
+}
+
+.fact-text {
+  font-size: 1rem;
+  color: #2c3e50;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.fact-details {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.source {
+  color: #7f8c8d;
+}
+
+.fact-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.fact-actions button {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+}
+
+.fact-edit-form {
+  display: grid;
+  gap: 1rem;
+}

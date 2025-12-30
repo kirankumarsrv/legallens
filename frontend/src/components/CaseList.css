@@ -1,0 +1,67 @@
+/* CaseList.css */
+.case-list {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.case-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.case-list-header h2 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.case-items {
+  list-style: none;
+  display: grid;
+  gap: 1rem;
+}
+
+.case-item {
+  padding: 1.5rem;
+  border: 1px solid #ecf0f1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.case-item:hover {
+  border-color: #3498db;
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
+  transform: translateY(-2px);
+}
+
+.case-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.case-meta {
+  display: flex;
+  gap: 1rem;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.status,
+.fact-count,
+.arg-count {
+  background-color: #ecf0f1;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+}
+
+.case-time {
+  font-size: 0.85rem;
+  color: #95a5a6;
+  margin-top: 0.5rem;
+}
