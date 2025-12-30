@@ -4,7 +4,7 @@ Run:
     streamlit run workflows/lawyer_agent/ui_argument_refiner.py
 
 Mirrors the fact refiner UI: edit/approve/reject arguments stored in ArgumentStorage
-persisted to `.case_session.json`.
+persisted to SQLite database.
 """
 import json
 import os
@@ -16,45 +16,31 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 import streamlit as st
 
 from modules.argument_storage import ArgumentStorage
+from modules.case_session_storage import CaseSessionStorage
 
-SESSION_FILE = ".case_session.json"
+DB_PATH = "case_sessions.db"
+DEFAULT_CASE_ID = "default_case"
 
 
-def load_argument_storage(path: str = SESSION_FILE) -> ArgumentStorage:
-    if os.path.exists(path):
+def load_argument_storage(case_id: str = DEFAULT_CASE_ID, db_path: str = DB_PATH) -> ArgumentStorage:
+    storage = CaseSessionStorage(case_id, db_path)
+    data = storage.load_arguments()
+    if data:
         try:
-            with open(path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            # session may contain an 'argument_storage' key or full dump
-            arg_data = data.get("argument_storage") if isinstance(data, dict) else None
-            if arg_data:
-                return ArgumentStorage.from_dict(arg_data)
-            # fallback if entire file is ArgumentStorage dict
-            if data and isinstance(data, dict) and any(k in data for k in ("arguments", "approved_arg_ids")):
-                return ArgumentStorage.from_dict(data)
+            return ArgumentStorage.from_dict(data)
         except Exception as e:
-            st.warning(f"Failed to load session file: {e}")
+            st.warning(f"Failed to load arguments from database: {e}")
     return ArgumentStorage()
 
 
-def save_argument_storage(as_store: ArgumentStorage, path: str = SESSION_FILE) -> None:
+def save_argument_storage(as_store: ArgumentStorage, case_id: str = DEFAULT_CASE_ID, db_path: str = DB_PATH) -> None:
     try:
-        # Merge into existing session file if present
-        session = {}
-        if os.path.exists(path):
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    session = json.load(f) or {}
-            except Exception:
-                session = {}
-
-        session["argument_storage"] = as_store.to_dict()
+        storage = CaseSessionStorage(case_id, db_path)
+        storage.save_arguments(as_store.to_dict())
         # Signal that arguments were edited so prediction can be recomputed
-        session["arguments_edited"] = True
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(session, f, indent=2)
+        storage.set_state_flag("arguments_edited", True)
     except Exception as e:
-        st.warning(f"Failed to save session file: {e}")
+        st.warning(f"Failed to save arguments to database: {e}")
 
 
 def do_rerun():
@@ -83,12 +69,19 @@ def main():
     st.set_page_config(page_title="Argument Refiner", layout="wide")
     st.title("Interactive Argument Refiner")
 
-    as_store = load_argument_storage()
+    # Get case ID from session state or use default
+    if "case_id" not in st.session_state:
+        st.session_state.case_id = DEFAULT_CASE_ID
+    case_id = st.session_state.case_id
+
+    as_store = load_argument_storage(case_id, DB_PATH)
 
     st.sidebar.header("Session")
+    st.sidebar.text_input("Case ID", value=case_id, key="case_id_input", disabled=True)
+    
     if st.sidebar.button("Seed sample arguments"):
         seed_sample_arguments(as_store)
-        save_argument_storage(as_store)
+        save_argument_storage(as_store, case_id, DB_PATH)
         do_rerun()
 
     st.sidebar.markdown(f"**Arguments:** {len(as_store.get_all_arguments())}")
@@ -97,12 +90,12 @@ def main():
 
     if st.sidebar.button("Lock approved arguments"):
         as_store.lock_approved_arguments()
-        save_argument_storage(as_store)
+        save_argument_storage(as_store, case_id, DB_PATH)
         st.success("Approved arguments locked.")
 
     if st.sidebar.button("Clear arguments"):
         as_store = ArgumentStorage()
-        save_argument_storage(as_store)
+        save_argument_storage(as_store, case_id, DB_PATH)
         do_rerun()
 
     args = as_store.get_all_arguments()
@@ -119,7 +112,7 @@ def main():
                 if new_text != arg["content"]:
                     if st.button("Update text", key=f"update_{arg_id}"):
                         as_store.update_argument(arg_id, content=new_text)
-                        save_argument_storage(as_store)
+                        save_argument_storage(as_store, case_id, DB_PATH)
                         do_rerun()
 
             with col2:
@@ -138,33 +131,8 @@ def main():
                         st.warning("Rejected")
                     else:
                         st.info("Left pending")
-                    save_argument_storage(as_store)
+                    save_argument_storage(as_store, case_id, DB_PATH)
                     do_rerun()
-
-    # Prediction history & restore
-    st.sidebar.write("")
-    st.sidebar.header("Prediction History")
-    try:
-        if os.path.exists(SESSION_FILE):
-            with open(SESSION_FILE, "r", encoding="utf-8") as f:
-                session = json.load(f) or {}
-        else:
-            session = {}
-        history = session.get("prediction_history") or []
-        if not history:
-            st.sidebar.info("No prediction history available.")
-        else:
-            for idx, item in enumerate(reversed(history)):
-                display_idx = len(history) - 1 - idx
-                ts = item.get("timestamp", "?")
-                preview = (item.get("prediction") or "")[:120]
-                if st.sidebar.button(f"Restore #{display_idx} — {ts}", key=f"restore_arg_{display_idx}"):
-                    session["restore_prediction_index"] = display_idx
-                    with open(SESSION_FILE, "w", encoding="utf-8") as f:
-                        json.dump(session, f, indent=2)
-                    st.sidebar.success(f"Wrote restore index {display_idx} to session. Run workflow to apply.")
-    except Exception:
-        st.sidebar.warning("Failed to read prediction history from session file.")
 
     approved = as_store.get_approved_arguments()
     if approved:
@@ -173,6 +141,25 @@ def main():
         st.text_area("approved_text", value=approved_text, height=200)
         if st.button("Download approved arguments (.txt)"):
             st.download_button("Download", approved_text, file_name="approved_arguments.txt")
+
+    # Prediction history & restore
+    st.sidebar.write("")
+    st.sidebar.header("Prediction History")
+    try:
+        storage = CaseSessionStorage(case_id, DB_PATH)
+        history = storage.load_prediction_history()
+        if not history:
+            st.sidebar.info("No prediction history available.")
+        else:
+            for idx, item in enumerate(reversed(history)):
+                display_idx = len(history) - 1 - idx
+                ts = item.get("timestamp", "?")
+                preview = (item.get("prediction") or "")[:120]
+                if st.sidebar.button(f"Restore #{display_idx} — {ts}", key=f"restore_arg_{display_idx}"):
+                    storage.set_state_flag("restore_prediction_index", display_idx)
+                    st.sidebar.success(f"Wrote restore index {display_idx} to database. Run workflow to apply.")
+    except Exception:
+        st.sidebar.warning("Failed to read prediction history from database.")
 
 
 if __name__ == "__main__":

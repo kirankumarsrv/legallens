@@ -4,7 +4,7 @@ Run:
     streamlit run workflows/lawyer_agent/ui_streamlit.py
 
 Features:
- - Load or create `FactStorage` persisted to `.case_session.json`
+ - Load or create `FactStorage` persisted to SQLite database
  - Display facts with editable text areas
  - Approve / Reject / Keep (pending) actions per fact
  - Lock approved facts to prevent re-retrieval
@@ -21,19 +21,21 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 import streamlit as st
 
 from modules.fact_storage import FactStorage
+from modules.case_session_storage import CaseSessionStorage
 
 
-SESSION_FILE = ".case_session.json"
+DB_PATH = "case_sessions.db"
+DEFAULT_CASE_ID = "default_case"
 
 
-def load_storage(path: str = SESSION_FILE) -> FactStorage:
-    if os.path.exists(path):
+def load_storage(case_id: str = DEFAULT_CASE_ID, db_path: str = DB_PATH) -> FactStorage:
+    storage = CaseSessionStorage(case_id, db_path)
+    data = storage.load_facts()
+    if data:
         try:
-            with open(path, "r", encoding="utf-8") as f:
-                data = json.load(f)
             return FactStorage.from_dict(data)
         except Exception as e:
-            st.warning(f"Failed to load session file: {e}")
+            st.warning(f"Failed to load facts from database: {e}")
     return FactStorage()
 
 
@@ -52,27 +54,14 @@ def do_rerun():
     st.stop()
 
 
-def save_storage(fs: FactStorage, path: str = SESSION_FILE) -> None:
+def save_storage(fs: FactStorage, case_id: str = DEFAULT_CASE_ID, db_path: str = DB_PATH) -> None:
     try:
-        # Merge into existing session file if present
-        session = {}
-        if os.path.exists(path):
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    session = json.load(f) or {}
-            except Exception:
-                session = {}
-
-        # Update fact storage content
-        session.update(fs.to_dict())
-
-        # If this save indicates a user edit, set a flag for recompute
-        session["facts_edited"] = True
-
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(session, f, indent=2)
+        storage = CaseSessionStorage(case_id, db_path)
+        storage.save_facts(fs.to_dict())
+        # Set flag for prediction recompute
+        storage.set_state_flag("facts_edited", True)
     except Exception as e:
-        st.warning(f"Failed to save session file: {e}")
+        st.warning(f"Failed to save facts to database: {e}")
 
 
 def seed_sample_facts(fs: FactStorage):
@@ -90,12 +79,19 @@ def main():
     st.set_page_config(page_title="Fact Refiner", layout="wide")
     st.title("Interactive Fact Refiner")
 
-    fs = load_storage()
+    # Get case ID from session state or use default
+    if "case_id" not in st.session_state:
+        st.session_state.case_id = DEFAULT_CASE_ID
+    case_id = st.session_state.case_id
+
+    fs = load_storage(case_id, DB_PATH)
 
     st.sidebar.header("Session")
+    st.sidebar.text_input("Case ID", value=case_id, key="case_id_input", disabled=True)
+    
     if st.sidebar.button("Seed sample facts"):
         seed_sample_facts(fs)
-        save_storage(fs)
+        save_storage(fs, case_id, DB_PATH)
         do_rerun()
 
     st.sidebar.markdown(f"**Facts:** {len(fs.get_all_facts())}")
@@ -105,13 +101,13 @@ def main():
     st.sidebar.write("")
     if st.sidebar.button("Lock approved facts"):
         fs.lock_approved_facts()
-        save_storage(fs)
+        save_storage(fs, case_id, DB_PATH)
         st.success("Approved facts locked.")
 
     st.sidebar.write("")
     if st.sidebar.button("Clear session"):
         fs.clear()
-        save_storage(fs)
+        save_storage(fs, case_id, DB_PATH)
         do_rerun()
 
     # Main area: list facts
@@ -129,8 +125,8 @@ def main():
                 if new_text != fact["content"]:
                     if st.button("Update text", key=f"update_{fact_id}"):
                         fs.update_fact(fact_id, content=new_text)
-                        save_storage(fs)
-                        do_rerun()
+                    save_storage(fs, case_id, DB_PATH)
+                    do_rerun()
 
             with col2:
                 status = fact.get("status", "pending")
@@ -157,19 +153,13 @@ def main():
                         st.warning("Rejected")
                     else:
                         st.info("Left pending")
-                    save_storage(fs)
-                    do_rerun()
-
-    # Prediction history & restore (reads session file)
+                    save_storage(fs, case_id, DB_PATH)
+    # Prediction history & restore (reads from database)
     st.sidebar.write("")
     st.sidebar.header("Prediction History")
     try:
-        if os.path.exists(SESSION_FILE):
-            with open(SESSION_FILE, "r", encoding="utf-8") as f:
-                session = json.load(f) or {}
-        else:
-            session = {}
-        history = session.get("prediction_history") or []
+        storage = CaseSessionStorage(case_id, DB_PATH)
+        history = storage.load_prediction_history()
         if not history:
             st.sidebar.info("No prediction history available.")
         else:
@@ -178,13 +168,11 @@ def main():
                 ts = item.get("timestamp", "?")
                 preview = (item.get("prediction") or "")[:120]
                 if st.sidebar.button(f"Restore #{display_idx} — {ts}", key=f"restore_{display_idx}"):
-                    # write restore flag to session file for the workflow runner to pick up
-                    session["restore_prediction_index"] = display_idx
-                    with open(SESSION_FILE, "w", encoding="utf-8") as f:
-                        json.dump(session, f, indent=2)
-                    st.sidebar.success(f"Wrote restore index {display_idx} to session. Run workflow to apply.")
+                    # Write restore flag to database for the workflow runner to pick up
+                    storage.set_state_flag("restore_prediction_index", display_idx)
+                    st.sidebar.success(f"Wrote restore index {display_idx} to database. Run workflow to apply.")
     except Exception:
-        st.sidebar.warning("Failed to read prediction history from session file.")
+        st.sidebar.warning("Failed to read prediction history from database.")
 
     # Export approved facts text
     approved = fs.get_approved_facts()
