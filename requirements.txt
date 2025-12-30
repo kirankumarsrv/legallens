@@ -39,6 +39,7 @@ scikit-learn
 tavily-python          # Tavily Search (best for legal research)
 google-search-results  # Google Search via SerpAPI
 duckduckgo-search      # DuckDuckGo (free, no API key needed)
+ddgs                   # DuckDuckGo Search (required by duckduckgo-search)
 
 # Research Papers (Arxiv, PDFs)
 arxiv                  # Arxiv academic paper search
@@ -60,3 +61,4 @@ flake8
 # Optional OCR dependencies (install only if OCR needed)
 pdf2image
 pytesseract
+

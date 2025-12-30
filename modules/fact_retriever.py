@@ -24,6 +24,10 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import hashlib
 from enum import Enum
+from dotenv import load_dotenv
+
+# Load .env file for API keys
+load_dotenv()
 
 
 class SourceType(Enum):
