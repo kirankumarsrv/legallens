@@ -1,0 +1,149 @@
+===================================================================
+MEDICAL EXAMINATION REPORT
+===================================================================
+
+Hospital: City Central Hospital
+Report Date: 15-DEC-2024
+Patient Name: Amit Sharma
+Patient Age: 28 years
+Patient Gender: Male
+Admission Time: 16:05 IST
+Report Issued By: Dr. Anil Kumar (MD, Emergency Medicine)
+Patient ID: CCH/2024/78945
+
+===================================================================
+CHIEF COMPLAINTS
+===================================================================
+
+- Severe head pain
+- Pain in left arm and shoulder
+- Multiple cuts and abrasions on body
+- Loss of consciousness for approximately 2-3 minutes after accident
+
+===================================================================
+VITAL SIGNS ON ADMISSION
+===================================================================
+
+Blood Pressure: 145/92 mmHg (Elevated)
+Pulse Rate: 98 bpm (Elevated)
+Respiratory Rate: 20/min (Normal)
+Temperature: 36.8°C (Normal)
+Oxygen Saturation: 96% (Satisfactory)
+Glasgow Coma Scale: 13/15 (Mild brain injury)
+
+===================================================================
+PHYSICAL EXAMINATION FINDINGS
+===================================================================
+
+HEAD & NEUROLOGICAL:
+- Laceration on forehead (4 cm, bleeding controlled)
+- Swelling over left temporal region
+- No signs of skull fracture (physical examination)
+- CT scan ordered for head injury assessment
+- Status: Conscious and oriented, but confused initially
+
+UPPER EXTREMITY:
+- Left arm: Fracture of radius and ulna (mid-shaft)
+- X-ray confirmed: Closed fracture, non-displaced
+- Treatment: Splinting and elevation, orthopedic consult recommended
+- Right arm: Minor abrasions and contusions
+
+LOWER EXTREMITY:
+- Both legs: Multiple abrasions and minor contusions
+- No fractures detected on initial examination
+- Sensation and motor function intact
+
+TORSO:
+- Multiple abrasions on chest and abdomen
+- No obvious sign of internal injuries
+- Abdominal tenderness: Mild
+- Recommended ultrasound for abdominal assessment
+
+===================================================================
+INJURIES DOCUMENTED
+===================================================================
+
+1. Lacerated wound on forehead - 4 cm, bleeding controlled with sutures
+2. Contusion and swelling on left side of head
+3. Closed fracture of left radius and ulna (mid-shaft)
+4. Multiple abrasions on face, arms, legs, and torso
+5. Contusion on chest and abdomen
+6. Mild concussion
+
+Injury Severity: MODERATE
+Disability: Temporary total disability (Expected 4-6 weeks recovery)
+
+===================================================================
+INVESTIGATIONS CONDUCTED
+===================================================================
+
+1. X-ray Left Arm: DONE
+   - Result: Closed fracture of radius and ulna (confirmed)
+   
+2. CT Scan Head: PENDING
+   - Ordered: Yes
+   - Status: Scheduled for 16-DEC-2024
+   
+3. Ultrasound Abdomen: PENDING
+   - Ordered: Yes
+   - Status: Scheduled for 16-DEC-2024
+   
+4. Complete Blood Count: DONE
+   - Hemoglobin: 14.2 g/dL (Normal)
+   - WBC: 7,200/mm³ (Normal)
+   
+5. Liver & Kidney Function Tests: DONE
+   - All parameters: Within normal limits
+
+===================================================================
+MEDICAL OPINION
+===================================================================
+
+The patient has sustained moderate injuries as a result of motor vehicle accident. 
+The left arm fracture requires orthopedic intervention and immobilization. 
+The head injury, though mild to moderate, requires close monitoring and radiological 
+assessment to rule out intracranial injury.
+
+The patient is in stable condition and has been admitted to the general ward for 
+observation and further management. Expected hospitalization: 3-5 days.
+
+Recovery: The patient is expected to make full recovery with appropriate treatment 
+and rehabilitation. Estimated time for complete recovery: 6-8 weeks.
+
+===================================================================
+PRESCRIPTION / TREATMENT PLAN
+===================================================================
+
+Medications:
+- Paracetamol 500mg: 1 tablet every 6 hours (for pain relief)
+- Ibuprofen 400mg: 1 tablet every 8 hours (for inflammation)
+- Antibiotics (Amoxicillin): 500mg every 8 hours for 5 days (infection prevention)
+- Multivitamin supplement: Daily (for wound healing)
+
+Treatment:
+- Immobilization of left arm with splint
+- Wound care and dressing changes
+- Ice packs: 15 minutes every 2 hours for first 48 hours
+- Elevation of left arm: Continuous
+- Physiotherapy: Starting from day 3 post-injury
+
+Follow-up:
+- Orthopedic review: 18-DEC-2024
+- Neurology review: 17-DEC-2024 (if CT abnormal)
+- General follow-up: Weekly for 4 weeks
+
+===================================================================
+DOCTOR'S SIGNATURE
+===================================================================
+
+Dr. Anil Kumar
+MD, Emergency Medicine
+License No: MED/DL/2019/1234
+City Central Hospital
+
+Date: 15-DEC-2024
+Time: 18:45 IST
+
+[Hospital Seal and Stamp]
+
+===================================================================

@@ -47,6 +47,11 @@ const HomePage: React.FC = () => {
       setCases([...cases, newCase]);
       setFormData({ caseName: '', caseType: '' });
       setShowCreateForm(false);
+      if (!newCase || !newCase.case_id || newCase.case_id === 'undefined') {
+        console.error('Invalid case created:', newCase);
+        alert('Failed to create case (invalid response). Check server logs.');
+        return;
+      }
       navigate(`/case/${newCase.case_id}`);
     } catch (error) {
       console.error('Failed to create case:', error);

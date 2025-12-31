@@ -14,7 +14,7 @@ Outputs appended to state:
 - `prediction_history` (list of prior predictions)
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from copy import deepcopy
 
 from workflows.lawyer_agent.retrieval.precedents import retrieve_precedents
@@ -85,7 +85,7 @@ def prediction_node(
     # If we will recompute and backtrack is enabled, save current prediction
     if force_recompute and backtrack_enabled and state.get("prediction"):
         hist_item = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "prediction": state.get("prediction"),
             "prediction_confidence": state.get("prediction_confidence", 0.0),
             "similar_cases": deepcopy(state.get("similar_cases", [])),

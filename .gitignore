@@ -1,3 +1,12 @@
+# Ignore environment files with secrets
+.env
+
+# Python cache and virtual env
+__pycache__/
+.venv/
+
+# Node modules
+frontend/node_modules/
 .venv
 datasets
 .dist

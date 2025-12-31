@@ -98,6 +98,21 @@ class CaseSessionStorage:
             )
         """)
 
+        # Evidence metadata table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS case_evidence (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                case_id TEXT,
+                file_path TEXT,
+                file_name TEXT,
+                mime_type TEXT,
+                size_bytes INTEGER,
+                uploader TEXT,
+                uploaded_at TEXT,
+                FOREIGN KEY (case_id) REFERENCES case_sessions(case_id)
+            )
+        """)
+
         conn.commit()
         conn.close()
 
@@ -285,8 +300,41 @@ class CaseSessionStorage:
         cursor.execute("DELETE FROM case_arguments WHERE case_id = ?", (self.case_id,))
         cursor.execute("DELETE FROM case_prediction_history WHERE case_id = ?", (self.case_id,))
         cursor.execute("DELETE FROM case_state_flags WHERE case_id = ?", (self.case_id,))
+        cursor.execute("DELETE FROM case_evidence WHERE case_id = ?", (self.case_id,))
         conn.commit()
         conn.close()
+
+    def add_evidence_record(self, file_path: str, file_name: str, mime_type: str, size_bytes: int, uploader: str = 'anonymous'):
+        """Add a single evidence file metadata record."""
+        self._ensure_case_session()
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO case_evidence (case_id, file_path, file_name, mime_type, size_bytes, uploader, uploaded_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (self.case_id, file_path, file_name, mime_type, size_bytes, uploader, datetime.utcnow().isoformat())
+        )
+        conn.commit()
+        conn.close()
+
+    def get_evidence_records(self) -> List[Dict[str, Any]]:
+        """Return all evidence records for this case as list of dicts."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, file_path, file_name, mime_type, size_bytes, uploader, uploaded_at FROM case_evidence WHERE case_id = ? ORDER BY uploaded_at ASC", (self.case_id,))
+        rows = cursor.fetchall()
+        conn.close()
+        records = []
+        for r in rows:
+            records.append({
+                "id": r[0],
+                "file_path": r[1],
+                "file_name": r[2],
+                "mime_type": r[3],
+                "size_bytes": r[4],
+                "uploader": r[5],
+                "uploaded_at": r[6],
+            })
+        return records
 
     @staticmethod
     def get_all_cases(db_path: str = "case_sessions.db") -> List[str]:

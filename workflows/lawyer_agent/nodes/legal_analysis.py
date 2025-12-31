@@ -36,58 +36,103 @@ def legal_analysis_node(state: LawyerState, chroma_stores: dict, embedding_model
         ✔ NO RE-RETRIEVAL: Use approved facts from Phase 1, don't retrieve again
     """
     
+    import traceback
+    
     print("\n⚖️  PHASE 2: LEGAL ANALYSIS")
     print("   (Using Approved Facts → Precedent Search → Reasoning)\n")
     
-    # Get tools available to LLM (for multilingual support)
-    tools = get_all_lawyer_agent_tools()
-    if tools:
-        print(f"   📦 Tools available: {', '.join([t.name for t in tools])}")
+    try:
+        # Get tools available to LLM (for multilingual support)
+        tools = get_all_lawyer_agent_tools()
+        if tools:
+            print(f"   📦 Tools available: {', '.join([t.name for t in tools])}")
+    except Exception as e:
+        print(f"   ❌ ERROR getting tools: {e}")
+        traceback.print_exc()
+        tools = []
     
     # CRITICAL: Get APPROVED & LOCKED facts from Phase 1
     # DO NOT re-retrieve statutes - use what was already approved
-    fact_storage = state.get("fact_storage")
-    if fact_storage and state.get("facts_approved_and_locked"):
-        # Facts were approved and locked - use them
-        statutes = fact_storage.get_approved_facts()
-        print(f"   🔒 Using {len(statutes)} approved & locked statute facts from Phase 1")
-    else:
-        # Fallback: if no fact storage, use facts_raw from state
-        # This shouldn't happen in normal flow but provides safety
-        statutes = state.get("facts", [])
-        print(f"   ⚠️  No locked facts found. Using {len(statutes)} facts from state (SHOULD NOT HAPPEN)")
+    try:
+        fact_storage = state.get("fact_storage")
+        print(f"   ✓ fact_storage retrieved: {fact_storage is not None}")
+        
+        if fact_storage and state.get("facts_approved_and_locked"):
+            # Facts were approved and locked - use them
+            statutes = fact_storage.get_approved_facts()
+            print(f"   🔒 Using {len(statutes)} approved & locked statute facts from Phase 1")
+        else:
+            # Fallback: if no fact storage, use facts_raw from state
+            # This shouldn't happen in normal flow but provides safety
+            statutes = state.get("facts", [])
+            print(f"   ⚠️  No locked facts found. Using {len(statutes)} facts from state (SHOULD NOT HAPPEN)")
+    except Exception as e:
+        print(f"   ❌ ERROR extracting facts: {e}")
+        traceback.print_exc()
+        statutes = []
     
     # Stage 2: Retrieve ONLY precedents (case law from yearwise FAISS)
     # This is NEW retrieval (not re-retrieval) - we're adding precedent cases
-    combined_query = f"{state['question']} {' '.join(state['facts_raw'][:2])}"
-    # If revise_action contains year constraints, pass them to precedent retrieval
-    target_years = None
-    if state.get('revise_action') and state['revise_action'].get('constraint_years'):
-        target_years = state['revise_action'].get('constraint_years')
-
-    precedents = retrieve_precedents(
-        query=combined_query,
-        faiss_store=faiss_store,
-        embedding_model=embedding_model,
-        k=5,
-        target_years=target_years
-    )
+    try:
+        facts_raw = state.get('facts_raw') or []
+        facts_snippet = ' '.join([str(f) for f in facts_raw[:2]]) if facts_raw else ""
+        combined_query = f"{state['question']} {facts_snippet}".strip()
+        print(f"   ✓ Combined query built: {len(combined_query)} chars")
+        
+        # If revise_action contains year constraints, pass them to precedent retrieval
+        target_years = None
+        revise_action = state.get('revise_action')
+        if revise_action and isinstance(revise_action, dict) and revise_action.get('constraint_years'):
+            target_years = revise_action.get('constraint_years')
+    except Exception as e:
+        print(f"   ❌ ERROR building query: {e}")
+        traceback.print_exc()
+        combined_query = state.get('question', '')
+        target_years = None
+    
+    # Prefer precedents produced during Phase 1 (fact gathering)
+    precedents = state.get('precedents')
+    if precedents:
+        print(f"   ✓ Using {len(precedents)} precedents already retrieved in Phase 1")
+    else:
+        try:
+            precedents = retrieve_precedents(
+                    query=combined_query,
+                    faiss_store=faiss_store,
+                    embedding_model=embedding_model,
+                    k=1,
+                    target_years=target_years
+                )
+        except Exception as e:
+            print(f"   ❌ Error during precedent retrieval: {e}")
+            traceback.print_exc()
+            precedents = []
     
     print(f"   📚 Retrieved {len(precedents)} precedent cases for legal analysis")
     
     # Stage 3: LLM reasoning
     # Build statute text from approved facts
     statute_text_parts = []
-    for s in statutes[:3]:
-        if isinstance(s, dict):
-            # Format 1: Dictionary from fact_storage
-            statute_text_parts.append(f"[{s.get('source', 'Statute')}] {s.get('content', '')}")
-        else:
-            # Format 2: Raw string from facts
-            statute_text_parts.append(f"[Statute] {str(s)[:200]}")
+    try:
+        for s in statutes[:3]:
+            if s is None:
+                continue
+            if isinstance(s, dict):
+                # Format 1: Dictionary from fact_storage
+                statute_text_parts.append(f"[{s.get('source', 'Statute')}] {s.get('content', '')}")
+            else:
+                # Format 2: Raw string from facts
+                statute_text_parts.append(f"[Statute] {str(s)[:200]}")
+    except Exception as e:
+        print(f"   ⚠️  Error building statute text: {e}")
+    
     statute_text = "\n\n".join(statute_text_parts)
     
-    precedent_text = "\n\n".join([f"[Case] {p['content'][:200]}..." for p in precedents[:2]])
+    precedent_text = ""
+    try:
+        precedent_text = "\n\n".join([f"[Case] {p.get('content', str(p))[:200]}..." for p in precedents[:2] if p])
+    except Exception as e:
+        print(f"   ⚠️  Error building precedent text: {e}")
     
     prompt = f"""You are an expert legal analyst. Perform structured legal analysis combining statutory law with precedent.
 

@@ -74,3 +74,34 @@
   display: grid;
   gap: 1rem;
 }
+
+.llm-summary {
+  margin-top: 0.5rem;
+  background: #f6f8fa;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+}
+
+.llm-summary strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.summary-text {
+  margin: 0;
+  white-space: pre-wrap;
+  color: #333;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.summary-toggle {
+  margin-top: 0.5rem;
+  background: transparent;
+  border: none;
+  color: #2b6cb0;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+}

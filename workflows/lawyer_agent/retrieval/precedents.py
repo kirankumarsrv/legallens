@@ -14,7 +14,7 @@ No reasoning, just similarity search.
 from typing import List, Dict, Any
 
 
-def retrieve_precedents(query: str, faiss_store: Any = None, embedding_model: Any = None, k: int = 5, target_years: List[int] = None) -> List[Dict[str, Any]]:
+def retrieve_precedents(query: str, faiss_store: Any = None, embedding_model: Any = None, k: int = 1, target_years: List[int] = None) -> List[Dict[str, Any]]:
     """
     Retrieve relevant Supreme Court precedents using METADATA-FIRST approach.
     
@@ -71,6 +71,7 @@ def retrieve_precedents(query: str, faiss_store: Any = None, embedding_model: An
                     vs = FAISSVectorStore(embedding_model=embedding_model)
                     vs.load(faiss_path)
 
+                    # retrieve only `k` results per year (default 1)
                     year_docs = vs.similarity_search(query, k=k)
 
                     for doc in year_docs:

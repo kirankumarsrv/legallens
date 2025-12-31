@@ -79,6 +79,10 @@ class ArgumentStorage:
     def get_all_arguments(self) -> List[Dict[str, Any]]:
         return list(self.arguments.values())
 
+    def get_argument(self, arg_id: str) -> Optional[Dict[str, Any]]:
+        """Return a single argument by id or None if not found."""
+        return self.arguments.get(arg_id)
+
     def lock_approved_arguments(self) -> List[Dict[str, Any]]:
         for aid in self.approved_arg_ids:
             if aid in self.arguments:

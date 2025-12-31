@@ -1,0 +1,54 @@
+===================================================================
+SAMPLE PROBLEM STATEMENT FOR CASE WORKFLOW TESTING
+===================================================================
+
+Case Title: State vs. Rajesh Kumar - Motor Vehicle Act Violation
+
+Problem Statement:
+------------------
+
+On December 15, 2024, at approximately 3:45 PM, a motor vehicle accident occurred at the intersection of 
+Ring Road and Sector 12, City Central. The defendant, Rajesh Kumar (Age: 35, Resident of Apartment 5B, 
+Lakeside Complex), was driving a commercial taxi (License Plate: DL-01-AB-5678) that collided with a 
+two-wheeler driven by the complainant, Amit Sharma (Age: 28, Resident of Plot 45, Green Heights).
+
+Sequence of Events:
+- The complainant was legally crossing the intersection with a green signal
+- The defendant's vehicle approached the intersection at high speed
+- The vehicle failed to stop at the red signal and collided with the two-wheeler
+- The complainant was thrown from the vehicle and suffered multiple injuries
+- Police arrived at the scene within 15 minutes of the accident
+- An FIR was filed under sections 279, 304A, and 338 of the Indian Penal Code
+- The defendant was detained and breathalyzer test showed blood alcohol content of 0.08%
+
+Key Evidence Available:
+- CCTV footage from nearby traffic camera (90 seconds before and after collision)
+- Medical report from City Central Hospital documenting injuries
+- Traffic police accident report (challan number: TC/DL/2024/45678)
+- Witness statements from 3 bystanders
+- Vehicle damage assessment report
+- Driver's license and vehicle registration documents
+- Breathalyzer test results
+
+Questions to Resolve:
+1. Was the defendant's vehicle driving at excessive speed?
+2. Did the defendant run the red light intentionally or due to mechanical failure?
+3. Was the defendant under the influence of alcohol during the accident?
+4. What is the extent of liability under the Motor Vehicle Act, 1988?
+5. What compensation should be awarded to the victim?
+6. Should the defendant's driving license be revoked?
+
+Legal Jurisdiction:
+- Court: District Court, Central District
+- Applicable Laws: Indian Penal Code (IPC) Sections 279, 304A, 338
+              Motor Vehicle Act, 1988 Sections 143, 144, 184
+              Bharatiya Nyaya Sanhita, 2023 (if applicable)
+- Previous Similar Cases: Case references - 2020/DL/5432 (similar motor vehicle negligence)
+
+===================================================================
+INSTRUCTIONS FOR UPLOAD:
+1. Copy this problem statement into the "Problem Statement" textarea in the Case Workflow
+2. Upload the sample evidence files from evidence_samples/ directory
+3. Click "Save Problem" and "Upload Files"
+4. Click "Run Compute" to start the AI-powered workflow
+===================================================================

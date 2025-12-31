@@ -304,7 +304,8 @@ def build_instrumented_graph(dependencies: dict, logger: NodeExecutionLogger) ->
         result = fact_gathering_node(
             state,
             dependencies["chroma_stores"],
-            dependencies["embedding_model"]
+            dependencies["embedding_model"],
+            llm=dependencies.get("llm")
         )
         
         logger.log_node_end("fact_gathering", result, 

@@ -56,7 +56,10 @@ def retrieve_statutes(query: str, chroma_stores: Dict[str, Any], embedding_model
         start_year = 1950
         end_year = min(current, 2025)
         years = list(range(start_year, end_year + 1))
-        print(f"   🔎 Scanning yearwise FAISS for years {start_year}..{end_year} (this may take time)")
+        # Only announce yearwise FAISS scanning if an embedding_model is available
+        # (when embedding_model is None we will skip FAISS and fall back to collections).
+        if embedding_model:
+            print(f"   🔎 Scanning yearwise FAISS for years {start_year}..{end_year} (this may take time)")
 
 
     # ============================================

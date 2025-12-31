@@ -180,6 +180,11 @@ class FactStorage:
     def get_fact_by_id(self, fact_id: str) -> Optional[Dict[str, Any]]:
         """Get a specific fact by ID."""
         return self.facts.get(fact_id)
+
+    # Backwards-compatible alias used by API code
+    def get_fact(self, fact_id: str) -> Optional[Dict[str, Any]]:
+        """Alias for get_fact_by_id to preserve older API usage."""
+        return self.get_fact_by_id(fact_id)
     
     def lock_approved_facts(self) -> List[Dict[str, Any]]:
         """

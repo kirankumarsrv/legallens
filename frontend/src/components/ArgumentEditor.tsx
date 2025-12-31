@@ -3,7 +3,7 @@ import { ArgumentItem } from '../services/api';
 import './ArgumentEditor.css';
 
 interface ArgumentEditorProps {
-  arguments: ArgumentItem[];
+  args: ArgumentItem[];
   facts: Array<{ fact_id: string; fact: string }>;
   onAddArgument: (argument: string, factIds: string[]) => void;
   onUpdateArgument: (argumentId: string, argument: string, factIds: string[]) => void;
@@ -14,7 +14,7 @@ interface ArgumentEditorProps {
 }
 
 const ArgumentEditor: React.FC<ArgumentEditorProps> = ({
-  arguments,
+  args,
   facts,
   onAddArgument,
   onUpdateArgument,
@@ -74,8 +74,8 @@ const ArgumentEditor: React.FC<ArgumentEditorProps> = ({
 
   return (
     <div className="argument-editor">
-      <div className="argument-editor-header">
-        <h3>Arguments ({arguments.length})</h3>
+        <div className="argument-editor-header">
+          <h3>Arguments ({args.length})</h3>
         <button onClick={() => setShowForm(!showForm)} className="btn-secondary">
           {showForm ? '× Close' : '+ Add Argument'}
         </button>
@@ -117,7 +117,7 @@ const ArgumentEditor: React.FC<ArgumentEditorProps> = ({
       )}
 
       <div className="argument-list">
-        {arguments.map((arg) => (
+        {args.map((arg) => (
           <div key={arg.argument_id} className="argument-item">
             {editingId === arg.argument_id ? (
               <div className="argument-edit-form">
