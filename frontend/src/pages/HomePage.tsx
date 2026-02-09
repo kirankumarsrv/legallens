@@ -92,8 +92,18 @@ const HomePage: React.FC = () => {
   return (
     <div className="home-page">
       <div className="home-header">
-        <h1>Legal Case Workflow Manager</h1>
-        <p>Manage your legal cases with AI-powered facts, arguments, and predictions</p>
+        <div className="header-content">
+          <div className="header-icon">⚖️</div>
+          <h1>Legal Case Workflow Manager</h1>
+          <p className="tagline">Empowering Legal Excellence with AI Intelligence</p>
+          <p className="subtitle">Streamline case management with intelligent fact extraction, legal analysis, and predictive insights</p>
+          <div className="feature-badges">
+            <span className="badge">📄 Smart Facts</span>
+            <span className="badge">🧠 AI Analysis</span>
+            <span className="badge">🔮 Predictions</span>
+            <span className="badge">📝 Draft Generation</span>
+          </div>
+        </div>
       </div>
 
       {showCreateForm && (

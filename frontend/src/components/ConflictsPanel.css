@@ -1,9 +1,10 @@
 .conflicts-panel {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background: var(--light-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 16px;
   margin: 16px 0;
+  transition: all 0.3s ease;
 }
 
 .conflicts-header {
@@ -17,11 +18,11 @@
 .conflicts-header h3 {
   margin: 0;
   font-size: 18px;
-  color: #212529;
+  color: var(--text-color);
 }
 
 .conflict-badge {
-  background: #dc3545;
+  background: var(--danger-color);
   color: white;
   padding: 4px 10px;
   border-radius: 20px;
@@ -30,8 +31,8 @@
 }
 
 .btn-refresh {
-  background: #e9ecef;
-  border: 1px solid #dee2e6;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 6px 12px;
   cursor: pointer;
@@ -40,22 +41,22 @@
 }
 
 .btn-refresh:hover {
-  background: #dee2e6;
+  background: var(--light-bg);
   transform: rotate(180deg);
 }
 
 .conflicts-error {
-  background: #f8d7da;
-  color: #721c24;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
   padding: 12px;
   border-radius: 4px;
   margin-bottom: 12px;
-  border: 1px solid #f5c6cb;
+  border: 1px solid var(--danger-color);
 }
 
 .conflicts-summary {
-  background: #fff3cd;
-  border: 1px solid #ffeeba;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid var(--warning-color);
   border-radius: 4px;
   padding: 12px;
   margin-bottom: 16px;

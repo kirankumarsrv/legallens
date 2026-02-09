@@ -60,6 +60,12 @@ export interface StateFlags {
   problem_statement_saved_at?: string;
   evidence_files?: string[];
   facts_approved_and_locked?: boolean;
+  // Persisted workflow outputs
+  current_analysis?: string;
+  current_draft?: string;
+  current_prediction?: string;
+  current_confidence?: number;
+  workflow_output_timestamp?: string;
 }
 
 // Case endpoints
@@ -262,6 +268,25 @@ export const stateAPI = {
   },
   clearFlag: async (caseId: string, flagKey: string) => {
     await apiClient.delete(`/cases/${caseId}/state/${flagKey}`);
+  },
+  saveWorkflowOutput: async (caseId: string, output: {
+    analysis?: string;
+    draft?: string;
+    prediction?: string;
+    confidence?: number;
+  }) => {
+    const response = await apiClient.post(`/cases/${caseId}/state/workflow_output`, output);
+    return response.data;
+  },
+  // Load persisted analysis and draft
+  getWorkflowOutputs: async (caseId: string) => {
+    const flags = await stateAPI.getFlags(caseId);
+    return {
+      analysis: (flags as any).current_analysis || '',
+      draft: (flags as any).current_draft || '',
+      prediction: (flags as any).current_prediction || '',
+      confidence: (flags as any).current_confidence || 0,
+    };
   },
 };
 

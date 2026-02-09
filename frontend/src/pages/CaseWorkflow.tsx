@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import {
   caseAPI,
   factAPI,
@@ -61,6 +62,21 @@ const CaseWorkflow: React.FC = () => {
     loadCaseData();
   }, [caseId]);
 
+  // Auto-save problem statement with debounce
+  useEffect(() => {
+    if (!problemStatement || !caseId) return;
+    
+    const timer = setTimeout(async () => {
+      try {
+        await caseAPI.saveProblem(caseId, problemStatement);
+      } catch (err) {
+        console.warn('Auto-save problem statement failed:', err);
+      }
+    }, 2000); // Save after 2 seconds of inactivity
+
+    return () => clearTimeout(timer);
+  }, [problemStatement, caseId]);
+
   const loadCaseData = async () => {
     setLoading(true);
     try {
@@ -79,12 +95,17 @@ const CaseWorkflow: React.FC = () => {
         setCurrentPrediction(latest.prediction);
         setCurrentConfidence(latest.confidence);
       }
-      // Load persisted state flags (problem statement, evidence paths)
+      // Load persisted state flags (problem statement, evidence paths, and workflow outputs)
       try {
         const flags = await (await import('../services/api')).stateAPI.getFlags(caseId);
         if (flags) {
           if (flags.problem_statement) setProblemStatement(flags.problem_statement as string);
           if (Array.isArray(flags.evidence_files)) setEvidenceFilePaths(flags.evidence_files as string[]);
+          // Load persisted workflow outputs
+          if (flags.current_analysis) setCurrentAnalysis(flags.current_analysis as string);
+          if (flags.current_draft) setCurrentDraft(flags.current_draft as string);
+          if (flags.current_prediction) setCurrentPrediction(flags.current_prediction as string);
+          if (typeof flags.current_confidence === 'number') setCurrentConfidence(flags.current_confidence as number);
         }
       } catch (err) {
         // non-fatal
@@ -93,6 +114,16 @@ const CaseWorkflow: React.FC = () => {
       console.error('Failed to load case data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveWorkflowOutput = async (outputKey: string, value: any) => {
+    if (!caseId) return;
+    try {
+      const { stateAPI } = await import('../services/api');
+      await stateAPI.setFlag(caseId, outputKey, value);
+    } catch (err) {
+      console.warn(`Failed to save ${outputKey}:`, err);
     }
   };
 
@@ -120,10 +151,22 @@ const CaseWorkflow: React.FC = () => {
         } else if (data.phase === 'evidence_ingest' || data.phase === 'fact_gathering' || data.phase === 'legal_analysis' || data.phase === 'prediction') {
           setReasoningTrace((s) => [...s, `${data.phase}: ${data.message}`]);
         } else if (data.phase === 'done') {
-          if (data.prediction) setCurrentPrediction(data.prediction);
-          if (typeof data.prediction_confidence === 'number') setCurrentConfidence(data.prediction_confidence);
-          if (data.analysis) setCurrentAnalysis(data.analysis);
-          if (data.draft) setCurrentDraft(data.draft);
+          if (data.prediction) {
+            setCurrentPrediction(data.prediction);
+            saveWorkflowOutput('current_prediction', data.prediction);
+          }
+          if (typeof data.prediction_confidence === 'number') {
+            setCurrentConfidence(data.prediction_confidence);
+            saveWorkflowOutput('current_confidence', data.prediction_confidence);
+          }
+          if (data.analysis) {
+            setCurrentAnalysis(data.analysis);
+            saveWorkflowOutput('current_analysis', data.analysis);
+          }
+          if (data.draft) {
+            setCurrentDraft(data.draft);
+            saveWorkflowOutput('current_draft', data.draft);
+          }
           if (Array.isArray(data.reasoning_trace)) setReasoningTrace((s) => [...s, ...data.reasoning_trace]);
           es.close();
           setComputing(false);
@@ -169,7 +212,10 @@ const CaseWorkflow: React.FC = () => {
         } else if (data.phase === 'legal_analysis') {
           setReasoningTrace((s) => [...s, `${data.phase}: ${data.message}`]);
         } else if (data.phase === 'done') {
-          if (data.analysis) setCurrentAnalysis(data.analysis);
+          if (data.analysis) {
+            setCurrentAnalysis(data.analysis);
+            saveWorkflowOutput('current_analysis', data.analysis);
+          }
           if (Array.isArray(data.reasoning_trace)) setReasoningTrace((s) => [...s, ...data.reasoning_trace]);
           es.close();
           setComputing(false);
@@ -212,8 +258,14 @@ const CaseWorkflow: React.FC = () => {
         } else if (data.phase === 'prediction') {
           setReasoningTrace((s) => [...s, `${data.phase}: ${data.message}`]);
         } else if (data.phase === 'done') {
-          if (data.prediction) setCurrentPrediction(data.prediction);
-          if (typeof data.prediction_confidence === 'number') setCurrentConfidence(data.prediction_confidence);
+          if (data.prediction) {
+            setCurrentPrediction(data.prediction);
+            saveWorkflowOutput('current_prediction', data.prediction);
+          }
+          if (typeof data.prediction_confidence === 'number') {
+            setCurrentConfidence(data.prediction_confidence);
+            saveWorkflowOutput('current_confidence', data.prediction_confidence);
+          }
           if (Array.isArray(data.reasoning_trace)) setReasoningTrace((s) => [...s, ...data.reasoning_trace]);
           es.close();
           setComputing(false);
@@ -256,7 +308,10 @@ const CaseWorkflow: React.FC = () => {
         } else if (data.phase === 'draft_generation') {
           setReasoningTrace((s) => [...s, `${data.phase}: ${data.message}`]);
         } else if (data.phase === 'done') {
-          if (data.draft) setCurrentDraft(data.draft);
+          if (data.draft) {
+            setCurrentDraft(data.draft);
+            saveWorkflowOutput('current_draft', data.draft);
+          }
           if (Array.isArray(data.reasoning_trace)) setReasoningTrace((s) => [...s, ...data.reasoning_trace]);
           es.close();
           setComputing(false);
@@ -292,7 +347,8 @@ const CaseWorkflow: React.FC = () => {
       const resp = await caseAPI.uploadEvidence(caseId, evidenceFiles);
       if (resp && Array.isArray(resp.saved)) {
         setEvidenceFilePaths(resp.saved);
-        alert(`Uploaded ${resp.saved.length} file(s)`);
+        setEvidenceFiles([]); // Clear file input after upload
+        alert(`Uploaded ${resp.saved.length} file(s) successfully`);
       }
     } catch (err) {
       console.error('Upload failed', err);
@@ -420,15 +476,6 @@ const CaseWorkflow: React.FC = () => {
     }
   };
 
-  const progressPercent =
-    Math.round(
-      ((facts.filter((f) => f.status === 'locked').length * 0.3 +
-        arguments_.filter((a) => a.status === 'locked').length * 0.3 +
-        (currentPrediction ? 0.4 : 0)) /
-        1) *
-        100
-    ) || 0;
-
   if (loading) {
     return <div className="loading-page">Loading case...</div>;
   }
@@ -439,11 +486,6 @@ const CaseWorkflow: React.FC = () => {
         <button onClick={() => navigate('/')} className="btn-back">
           ← Back to Cases
         </button>
-        <h1>Case Workflow: {caseId}</h1>
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${progressPercent}%` }}></div>
-          <span className="progress-text">{progressPercent}% Complete</span>
-        </div>
         <div className="compute-actions">
           <button className="btn-primary" onClick={handleRunCompute} disabled={computing}>
             {computing ? 'Running...' : 'Run Compute'}
@@ -454,11 +496,11 @@ const CaseWorkflow: React.FC = () => {
               if (!caseId) return;
               try {
                 setComputing(true);
-                console.log('🔒 Before lock - Facts:', facts.map(f => ({ id: f.id, status: f.status })));
+                console.log('🔒 Before lock - Facts:', facts.map(f => ({ id: f.fact_id, status: f.status })));
                 await (await import('../services/api')).factAPI.lockAll(caseId);
                 // reload facts and UI
                 await loadCaseData();
-                console.log('🔒 After lock and reload - Facts:', facts.map(f => ({ id: f.id, status: f.status })));
+                console.log('🔒 After lock and reload - Facts:', facts.map(f => ({ id: f.fact_id, status: f.status })));
                 alert('Locked all approved facts');
               } catch (err) {
                 console.error('Lock all failed', err);
@@ -490,7 +532,7 @@ const CaseWorkflow: React.FC = () => {
                 setComputing(false);
               }
             }}
-            disabled={computing || facts.filter((f) => f.status === 'approved' || f.status === 'approved_locked').length === 0}
+            disabled={computing}
           >
             Use Locked Facts for Analysis
           </button>
@@ -506,7 +548,7 @@ const CaseWorkflow: React.FC = () => {
                 alert('Failed to generate prediction');
               }
             }}
-            disabled={computing || arguments_.filter((a) => a.status === 'approved' || a.status === 'approved_locked').length === 0}
+            disabled={computing}
           >
             🔮 Generate Prediction
           </button>
@@ -522,7 +564,7 @@ const CaseWorkflow: React.FC = () => {
                 alert('Failed to generate draft');
               }
             }}
-            disabled={computing || arguments_.filter((a) => a.status === 'approved' || a.status === 'approved_locked').length === 0}
+            disabled={computing}
           >
             📝 Generate Draft
           </button>
@@ -532,35 +574,38 @@ const CaseWorkflow: React.FC = () => {
       <div className="problem-panel">
         <h3>Problem Statement & Evidence</h3>
         <textarea
-          placeholder="Enter the problem statement for this case..."
+          placeholder="Describe the legal case, dispute, or issue that needs analysis..."
           value={problemStatement}
           onChange={(e) => setProblemStatement(e.target.value)}
           className="problem-textarea"
         />
         <div className="problem-actions">
           <button className="btn-secondary" onClick={handleSaveProblem} disabled={computing || problemStatement.trim().length===0}>
-            Save Problem
+            💾 Save & Persist to Database
           </button>
+          <span className="auto-save-indicator">⚡ Auto-saves to database</span>
         </div>
         <div className="evidence-upload">
-          <label>Attach evidence files (PDF/image names only for now):</label>
+          <label>📂 Attach Evidence Files</label>
           <input
             type="file"
             multiple
             onChange={(e) => setEvidenceFiles(Array.from(e.target.files || []))}
           />
-          <div className="attached-list">
-            {evidenceFiles.map((f, i) => (
-              <div key={i} className="attached-item">{f.name}</div>
-            ))}
-          </div>
+          {evidenceFiles.length > 0 && (
+            <div className="attached-list">
+              {evidenceFiles.map((f, i) => (
+                <div key={i} className="attached-item">{f.name}</div>
+              ))}
+            </div>
+          )}
           <div className="upload-actions">
             <button className="btn-primary" onClick={handleUploadEvidence} disabled={computing || evidenceFiles.length === 0}>
-              {computing ? 'Uploading...' : 'Upload Files'}
+              {computing ? '⏳ Uploading...' : '📤 Upload Files'}
             </button>
             {evidenceFilePaths.length > 0 && (
               <div className="uploaded-list">
-                <strong>Uploaded:</strong>
+                <strong>Successfully Uploaded</strong>
                 <ul>
                   {evidenceFilePaths.map((p, i) => (
                     <li key={i}>{p}</li>
@@ -726,32 +771,49 @@ const CaseWorkflow: React.FC = () => {
         )}
         {currentAnalysis && (
           <div className="analysis-section">
-            <h3>📋 Legal Analysis</h3>
+            <div className="section-header">
+              <h3>📋 Legal Analysis</h3>
+              <span className="section-badge">AI Generated</span>
+            </div>
             <div className="analysis-content">
-              {currentAnalysis}
+              {currentAnalysis.split('\n\n').map((para, idx) => (
+                <div key={idx} className="analysis-paragraph">
+                  <ReactMarkdown>{para}</ReactMarkdown>
+                </div>
+              ))}
             </div>
           </div>
         )}
         {currentDraft && (
           <div className="draft-section">
-            <h3>📄 Legal Draft/Memorandum</h3>
-            <div className="draft-content">
-              {currentDraft}
+            <div className="section-header">
+              <h3>📄 Legal Draft/Memorandum</h3>
+              <div className="header-actions">
+                <span className="section-badge">AI Generated</span>
+                <button
+                  className="btn-download"
+                  onClick={() => {
+                    const element = document.createElement('a');
+                    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(currentDraft));
+                    element.setAttribute('download', `case_${caseId}_draft.txt`);
+                    element.style.display = 'none';
+                    document.body.appendChild(element);
+                    element.click();
+                    document.body.removeChild(element);
+                  }}
+                >
+                  📥 Download
+                </button>
+              </div>
             </div>
-            <button
-              className="btn-secondary"
-              onClick={() => {
-                const element = document.createElement('a');
-                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(currentDraft));
-                element.setAttribute('download', `case_${caseId}_draft.txt`);
-                element.style.display = 'none';
-                document.body.appendChild(element);
-                element.click();
-                document.body.removeChild(element);
-              }}
-            >
-              📥 Download Draft
-            </button>
+            <div className="draft-content">
+              {currentDraft.split('\n\n').map((para, idx) => {
+                if (para.trim().startsWith('-') || para.trim().match(/^\d+\./)) {
+                  return <div key={idx} className="draft-list-item"><ReactMarkdown>{para.trim()}</ReactMarkdown></div>;
+                }
+                return <div key={idx} className="draft-paragraph"><ReactMarkdown>{para}</ReactMarkdown></div>;
+              })}
+            </div>
           </div>
         )}
       </div>

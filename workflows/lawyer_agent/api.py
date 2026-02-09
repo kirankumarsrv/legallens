@@ -786,18 +786,26 @@ def restore_prediction(case_id: str, index: int):
 # State Flags Endpoints
 # ============================================================================
 
-@app.get("/cases/{case_id}/state", response_model=StateFlags)
+@app.get("/cases/{case_id}/state", response_model=dict)
 def get_state(case_id: str):
-    """Get all workflow state flags for a case."""
+    """Get all workflow state flags for a case including problem statement, evidence files, and workflow outputs."""
     try:
         storage = CaseSessionStorage(case_id, DB_PATH)
         flags = storage.get_all_state_flags()
-        return StateFlags(
-            facts_edited=flags.get("facts_edited", False),
-            arguments_edited=flags.get("arguments_edited", False),
-            recompute_prediction=flags.get("recompute_prediction", False),
-            restore_prediction_index=flags.get("restore_prediction_index")
-        )
+        return {
+            "facts_edited": flags.get("facts_edited", False),
+            "arguments_edited": flags.get("arguments_edited", False),
+            "recompute_prediction": flags.get("recompute_prediction", False),
+            "restore_prediction_index": flags.get("restore_prediction_index"),
+            "problem_statement": flags.get("problem_statement"),
+            "problem_statement_saved_at": flags.get("problem_statement_saved_at"),
+            "evidence_files": flags.get("evidence_files", []),
+            "current_analysis": flags.get("current_analysis"),
+            "current_draft": flags.get("current_draft"),
+            "current_prediction": flags.get("current_prediction"),
+            "current_confidence": flags.get("current_confidence"),
+            "workflow_output_timestamp": flags.get("workflow_output_timestamp"),
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -820,6 +828,31 @@ def clear_state_flag(case_id: str, flag_key: str):
         storage = CaseSessionStorage(case_id, DB_PATH)
         storage.clear_state_flag(flag_key)
         return {"status": "cleared", "flag": flag_key}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/cases/{case_id}/state/workflow_output")
+def save_workflow_output(case_id: str, output: dict):
+    """Save workflow outputs (analysis, draft, prediction, confidence)."""
+    try:
+        storage = CaseSessionStorage(case_id, DB_PATH)
+        # Save each field if provided
+        if "analysis" in output and output["analysis"]:
+            storage.set_state_flag("current_analysis", output["analysis"])
+        if "draft" in output and output["draft"]:
+            storage.set_state_flag("current_draft", output["draft"])
+        if "prediction" in output and output["prediction"]:
+            storage.set_state_flag("current_prediction", output["prediction"])
+        if "confidence" in output and isinstance(output["confidence"], (int, float)):
+            storage.set_state_flag("current_confidence", output["confidence"])
+        
+        storage.set_state_flag("workflow_output_timestamp", str(datetime.datetime.now()))
+        return {
+            "status": "saved",
+            "fields_saved": list(output.keys()),
+            "timestamp": str(datetime.datetime.now())
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -1349,7 +1382,7 @@ def compute_case_stream(
                         storage.save_arguments(state["argument_storage"].to_dict())
                         storage.set_state_flag("arguments_edited", True)
                     if state.get("analysis"):
-                        storage.save_state("analysis", state["analysis"])
+                        storage.set_state_flag("current_analysis", state["analysis"])
                 except Exception as e:
                     print(f"Warning: Failed to save arguments/analysis: {e}")
                 
@@ -1393,6 +1426,10 @@ def compute_case_stream(
                 try:
                     if state.get("prediction_history"):
                         storage.save_prediction_history(state["prediction_history"])
+                    if state.get("prediction"):
+                        storage.set_state_flag("current_prediction", state["prediction"])
+                    if state.get("prediction_confidence"):
+                        storage.set_state_flag("current_confidence", state["prediction_confidence"])
                 except Exception as e:
                     print(f"Warning: Failed to save prediction: {e}")
                 
@@ -1449,6 +1486,13 @@ def compute_case_stream(
                     _llm = SimpleLLM()
                 
                 state = draft_generation_node(state=state, llm=_llm)
+                
+                # Save draft
+                try:
+                    if state.get("draft"):
+                        storage.set_state_flag("current_draft", state["draft"])
+                except Exception as e:
+                    print(f"Warning: Failed to save draft: {e}")
                 
                 yield sse_event('{"phase": "draft_generation", "message": "Draft generation complete"}')
                 yield sse_event(json.dumps({

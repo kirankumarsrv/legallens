@@ -1,0 +1,252 @@
+================================================================================
+CCTV SURVEILLANCE REPORT & ANALYSIS
+================================================================================
+
+CASE: State vs. Munjappa (THEFT - STATE SHOPPING MALL)
+FIR NUMBER: BNG/2025/78945
+CASE NUMBER: CS-2025-BNG-45678
+REPORT DATE: January 16, 2025
+REPORT ID: CCTV-BNG-2025-001
+
+CCTV OPERATOR: Priya (Age 28, Surveillance Specialist)
+SENIOR REVIEWER: Rajesh Kumar (General Manager)
+REPORT PREPARED BY: Inspector Vikram Singh
+
+================================================================================
+CCTV SYSTEM SPECIFICATIONS
+================================================================================
+
+TOTAL CAMERAS: 24 High-Definition Cameras
+COVERAGE: Central Shopping Mall (Full premises)
+RESOLUTION: 1080p to 4K (varies by location)
+STORAGE: Digital NVR (Network Video Recorder)
+RETENTION PERIOD: 30 days rolling backup
+FOOTAGE STATUS: Fully operational on January 15, 2025
+
+RELEVANT CAMERA LOCATIONS FOR THIS CASE:
+1. Camera C-001: Central Entrance (Main Entry Point)
+2. Camera C-005: Electronics Section (Display Area)
+3. Camera C-006: Electronics Section (Counter Area)
+4. Camera C-012: Sales Aisle (Across from Kiosk 15)
+5. Camera C-018: Emergency Exit (Near Electronics Section)
+6. Camera C-020: Main Mall Corridor (Near Exit)
+
+================================================================================
+INCIDENT TIMELINE WITH CCTV EVIDENCE
+================================================================================
+
+TIME: 10:15 PM - 10:20 PM
+EVENT: Suspect's Arrival at Mall
+FOOTAGE SOURCE: Camera C-001 (Central Entrance)
+OBSERVATIONS:
+  - Male individual (identified as Munjappa) enters mall at 10:17 PM
+  - Appears agitated and observes security cameras
+  - Looks around nervously
+  - Moves quickly toward electronics section
+TIMESTAMP: 10:17:35 PM
+DURATION: 48 seconds
+
+---
+
+TIME: 10:25 PM - 10:30 PM
+EVENT: Suspect in Electronics Section
+FOOTAGE SOURCE: Camera C-005, C-006 (Electronics Section)
+OBSERVATIONS:
+  - Suspect enters electronics section at 10:26 PM
+  - Walks directly to Kiosk 15 (Arun Kumar Singh's store)
+  - Examines display with high-value items
+  - Deliberately positions himself to avoid direct camera view
+  - Appears to be timing movements based on visibility
+TIMESTAMP: 10:26:12 PM
+DURATION: 4 minutes 18 seconds
+
+---
+
+TIME: 10:30 PM - 10:35 PM
+EVENT: SUSPECTED THEFT IN PROGRESS
+FOOTAGE SOURCE: Camera C-005, C-006, C-012 (Multiple angles)
+OBSERVATIONS:
+  - At 10:32 PM: Suspect reaches over display counter
+  - Removes 1 laptop computer (clearly visible in footage)
+  - Places item in carrying bag
+  - At 10:33 PM: Removes 2 mobile phones
+  - Conceals items quickly
+  - At 10:34 PM: Reaches for 3rd and 4th items
+  - Another individual (Police Officer Arun Kumar) visible in background patrolling
+TIMESTAMP: 10:32:15 PM to 10:34:47 PM
+DURATION: 2 minutes 32 seconds
+EVIDENCE QUALITY: EXCELLENT - CLEAR IDENTIFICATION OF THEFT
+
+---
+
+TIME: 10:35 PM - 10:40 PM
+EVENT: Suspect Detected by Complainant, Alert to Police
+FOOTAGE SOURCE: Camera C-012, C-020
+OBSERVATIONS:
+  - Complainant (Arun Kumar Singh) notices missing items at 10:35 PM
+  - Calls out and attracts attention of Police Officer Arun Kumar
+  - Police officer immediately responds and approaches suspect
+  - Suspect remains in store area initially
+TIMESTAMP: 10:35:22 PM
+DURATION: 5 minutes
+
+---
+
+TIME: 10:40 PM - 10:45 PM  
+EVENT: APPREHENSION AT MALL EXIT
+FOOTAGE SOURCE: Camera C-018, C-020 (Emergency Exit & Corridor)
+OBSERVATIONS:
+  - Suspect attemptsed to flee toward emergency exit at 10:40 PM
+  - Police Officer Arun Kumar pursues suspect
+  - Brief struggle observed (approximately 30 seconds)
+  - Suspect is apprehended and placed in custody at 10:42 PM
+  - Stolen items recovered from suspect's bag and person
+  - Handcuffs applied at 10:43 PM
+  - Multiple security personnel arrive to assist
+TIMESTAMP: 10:40:08 PM to 10:43:15 PM
+DURATION: 3 minutes 7 seconds
+EVIDENCE QUALITY: EXCELLENT - CLEAR CAPTURE OF ARREST PROCEDURE
+
+---
+
+TIME: 10:45 PM onwards
+EVENT: Post-Incident Documentation
+OBSERVATIONS:
+  - Police officer escorts suspect to police van
+  - Items inventoried and photographed
+  - CCTV operator (Priya) begins recording incident details
+
+================================================================================
+CCTV FOOTAGE ANALYSIS - KEY FINDINGS
+================================================================================
+
+1. CLEAR IDENTIFICATION OF SUSPECT:
+   ✓ Suspect's face visible in multiple angles
+   ✓ Physical features match police records
+   ✓ Height and build consistent (5'10", Medium build)
+   ✓ Distinguishing features visible (scar on arm)
+
+2. TIMELINE VERIFICATION:
+   ✓ All witness accounts corroborated by CCTV timestamps
+   ✓ Sequence of events matches incident narrative
+   ✓ No discrepancies between statements and footage
+
+3. THEFT EVIDENCE:
+   ✓ Clear footage of suspect removing items from display
+   ✓ Multiple camera angles confirm theft action
+   ✓ Item identification visible in footage
+
+4. CRIMINAL INTENT:
+   ✓ Suspect deliberately avoids camera view
+   ✓ Quick, deliberate movements indicate premeditation
+   ✓ Nervous behavior suggests criminal knowledge
+   ✓ Flight attempt after detection confirms intent
+
+5. POLICE RESPONSE:
+   ✓ Officer response time: Prompt (within 5 minutes)
+   ✓ Proper apprehension procedure observed
+   ✓ Minimal force used (appropriate for situation)
+   ✓ No excessive force visible in footage
+
+================================================================================
+TECHNICAL EVIDENCE DETAILS
+================================================================================
+
+VIDEO FORMAT: MP4 (H.264 compression)
+RESOLUTION: 1080p at 30 fps (frames per second)
+FILE SIZE: ~480 MB for 2-hour footage (09:00 PM - 11:00 PM)
+DIGITAL SIGNING: Hash - A7F3E9B2C1D6E8F4A5B9C2D1E7
+
+FRAME-BY-FRAME ANALYSIS AVAILABLE FOR:
+- Suspect's face (Multiple angles - 47 key frames)
+- Item theft sequence (34 key frames)
+- Apprehension procedure (52 key frames)
+
+ENHANCEMENT TECHNIQUES APPLIED:
+- Brightness/contrast optimization
+- Noise reduction
+- Resolution enhancement (where applicable)
+
+EVIDENCE PRESERVATION:
+- Original footage preserved in secure digital vault
+- Backup copies created (3 locations)
+- Chain of custody maintained
+- Court-ready format available
+
+================================================================================
+ANOMALIES & NOTES IN FOOTAGE
+================================================================================
+
+OBSERVATION 1: Police Officer Name
+The officer visible in footage is identified as "Arun Kumar" (Senior Constable).
+In legal documents, he may also be referenced with badge: DL-2025-CSI-4521.
+NOTE: Different from "Arun Kumar Singh" (Shop Owner - Complainant).
+[Recommendation: Always use full identifiers in official court documents]
+
+OBSERVATION 2: Suspect Name Variations
+In CCTV logs, suspect is referred to as both:
+- "Munjappa" (Primary reference - 7 mentions)  
+- "Munyappa" (Alternate reference - 3 mentions)
+FOOTAGE LABEL: "SUSPECT_MUNJAPPA_NAME_VAR_20250115"
+[Recommendation: Standardize to canonical name "MUNJAPPA" in legal proceedings]
+
+OBSERVATION 3: Two Surveillance Operators
+The facility has two "Priya" individuals visible:
+- "Priya Sharma" (45 years) - Security Personnel
+- "Priya" (28 years) - CCTV Systems Operator
+NOTE: CCTV footage reviewed by "Priya" (28 years - CCTV Operator)
+[Recommendation: Use full names in all official documentation]
+
+================================================================================
+CCTV OPERATOR CERTIFICATION
+================================================================================
+
+I, Priya, CCTV Surveillance Operator at Central Shopping Mall, certify that:
+
+1. The above report accurately describes the CCTV footage recorded on 
+   January 15, 2025 from 09:00 PM to 11:00 PM
+
+2. The footage is original and unedited (except for enhancement for clarity)
+
+3. Timeline of events matches the incident narrative provided
+
+4. The suspect's identity can be confirmed from multiple camera angles
+
+5. All stolen items can be visually identified in the footage
+
+6. Police response and apprehension procedures are visible and properly documented
+
+CCTV OPERATOR SIGNATURE: Priya
+OPERATOR ID: CCTV-OP-028-2023
+MALL AUTHORIZATION: AUTHORIZED
+DATE: January 16, 2025, 03:00 AM
+
+REVIEWED & VERIFIED BY: Rajesh Kumar (General Manager)
+MANAGER SIGNATURE: Rajesh Kumar
+MANAGER ID: MGR-RK-2025-001
+DATE: January 16, 2025, 03:15 AM
+
+================================================================================
+COURT PRESENTATION DETAILS
+================================================================================
+
+FOOTAGE AVAILABILITY FOR COURT:
+✓ DVD Format (Playable in standard DVD players)
+✓ USB Format (MP4 - Playable on computers/screens)
+✓ Timestamp overlays (Visible throughout footage)
+✓ Chain of custody documentation (Provided)
+
+PLAYBACK REQUIREMENTS:
+- Duration: 2 hours (full footage)
+- Key incident clips: 15 minutes (edited highlights)
+- Frame-by-frame analysis: Available on request
+
+PRESENTATION RECOMMENDATION:
+Show full 2-hour footage OR selected 15-minute highlight reel to court.
+Key moments (timecoded):
+  10:17:35 - Suspect entry
+  10:26:12 - Suspect in electronics area
+  10:32:15 - Theft in progress (CRITICAL)
+  10:40:08 - Apprehension (CRITICAL)
+
+================================================================================

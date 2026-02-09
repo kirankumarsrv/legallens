@@ -1,18 +1,27 @@
 /* PredictionViewer.css */
 .prediction-viewer {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 16px var(--shadow-color);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .prediction-header {
-  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .prediction-header h3 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-color);
+  font-size: 1.4rem;
+  font-weight: 700;
 }
 
 .prediction-content {
@@ -22,50 +31,135 @@
 
 .prediction-box {
   padding: 2rem;
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
 }
 
 .prediction-text {
-  font-size: 1.1rem;
-  margin: 0 0 1.5rem 0;
-  line-height: 1.6;
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.prediction-paragraph {
+  margin-bottom: 1.2rem;
+  text-align: justify;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.prediction-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Markdown styling for prediction */
+.prediction-paragraph strong {
+  font-weight: 700;
+  color: #fff;
+  text-decoration: underline;
+}
+
+.prediction-paragraph em {
+  font-style: italic;
+  color: #fff;
+}
+
+.prediction-paragraph code {
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  color: #fff;
+}
+
+.prediction-paragraph ul,
+.prediction-paragraph ol {
+  margin: 0.8rem 0;
+  padding-left: 1.5rem;
+}
+
+.prediction-paragraph li {
+  margin-bottom: 0.4rem;
+}
+
+.prediction-paragraph p {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.confidence-section {
+  margin-top: 2rem;
+}
+
+.confidence-label {
+  display: block;
+  margin-bottom: 0.8rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
 }
 
 .confidence-meter {
   background-color: rgba(255, 255, 255, 0.2);
-  height: 30px;
-  border-radius: 15px;
+  height: 40px;
+  border-radius: 20px;
   overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .confidence-bar {
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.8);
-  color: #2980b9;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  transition: width 0.3s ease;
+  font-weight: 700;
+  transition: width 0.6s ease;
+  position: relative;
+}
+
+.confidence-text {
+  color: white;
+  font-size: 1rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .empty-prediction {
   text-align: center;
-  padding: 2rem;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 12px;
+  border: 2px dashed #d0d7de;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-prediction p {
+  margin: 0;
   color: #7f8c8d;
-  background-color: #f8f9fa;
-  border-radius: 8px;
+  font-size: 1rem;
 }
 
 .history-section {
   margin-top: 2rem;
+  padding: 1.5rem;
+  background: #fafbfc;
+  border-radius: 10px;
+  border: 1px solid #e8e8e8;
 }
 
 .history-section h4 {
-  margin: 0 0 1rem 0;
+  margin: 0 0 1.5rem 0;
   color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .history-list {
@@ -77,10 +171,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  border: 1px solid #ecf0f1;
-  border-radius: 6px;
-  gap: 1rem;
+  padding: 1.2rem;
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  gap: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.history-item:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
 }
 
 .history-content {
@@ -88,14 +190,15 @@
 }
 
 .history-text {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.8rem 0;
   color: #2c3e50;
   font-weight: 500;
+  line-height: 1.5;
 }
 
 .history-details {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
   font-size: 0.85rem;
   color: #7f8c8d;
 }
@@ -106,9 +209,30 @@
 
 .confidence {
   font-weight: 600;
-  color: #3498db;
+  color: #667eea;
 }
 
 .btn-restore {
   flex-shrink: 0;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
+
+.btn-restore:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+}
+
+.btn-restore:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+

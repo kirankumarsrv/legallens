@@ -28,6 +28,7 @@ const FactEditor: React.FC<FactEditorProps> = ({
   const [editFact, setEditFact] = useState('');
   const [editSource, setEditSource] = useState('');
   const [expandedSummaries, setExpandedSummaries] = useState<Record<string, boolean>>({});
+  const [expandedFacts, setExpandedFacts] = useState<Record<string, boolean>>({});
 
   const handleAddFact = () => {
     if (newFact.trim() && newSource.trim()) {
@@ -63,6 +64,10 @@ const FactEditor: React.FC<FactEditorProps> = ({
 
   const toggleSummary = (factId: string) => {
     setExpandedSummaries((s) => ({ ...s, [factId]: !s[factId] }));
+  };
+
+  const toggleFact = (factId: string) => {
+    setExpandedFacts((s) => ({ ...s, [factId]: !s[factId] }));
   };
 
   return (
@@ -129,7 +134,16 @@ const FactEditor: React.FC<FactEditorProps> = ({
             ) : (
               <>
                 <div className="fact-content">
-                  <p className="fact-text">{fact.fact}</p>
+                  <p className="fact-text">
+                    {expandedFacts[fact.fact_id] || fact.fact.length <= 250
+                      ? fact.fact
+                      : `${fact.fact.slice(0, 250)}…`}
+                  </p>
+                  {fact.fact.length > 250 && (
+                    <button className="fact-toggle" onClick={() => toggleFact(fact.fact_id)}>
+                      {expandedFacts[fact.fact_id] ? 'Show less' : 'Show more'}
+                    </button>
+                  )}
                   {fact.llm_summary && (
                     <div className="llm-summary">
                       <strong>LLM summary:</strong>

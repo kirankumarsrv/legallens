@@ -1,0 +1,208 @@
+================================================================================
+FIRST INFORMATION REPORT (FIR)
+================================================================================
+
+FIR NUMBER: BNG/2025/78945
+POLICE STATION: Central Shopping Mall, Bangalore
+DATE OF REGISTRATION: January 16, 2025
+TIME OF REGISTRATION: 12:30 AM
+REGISTERED BY: Police Officer Arun Kumar (ID: DL-2025-CSI-4521)
+
+================================================================================
+CASE DETAILS
+================================================================================
+
+CASE TYPE: THEFT
+CASE CATEGORY: Criminal Theft - Section 379, 380, 406 IPC
+CASE NUMBER: CS-2025-BNG-45678
+SEVERITY LEVEL: Medium (Electronics worth Rs. 2,50,000)
+
+DATE OF INCIDENT: January 15, 2025
+TIME OF INCIDENT: 10:30 PM - 10:40 PM
+LOCATION OF INCIDENT: Central Shopping Mall, Electronics Section, Bangalore 560071
+
+================================================================================
+COMPLAINANT DETAILS
+================================================================================
+
+NAME: Arun Kumar Singh
+AGE: 38 years
+GENDER: Male
+OCCUPATION: Shop Owner
+STORE DETAILS: Kiosk 15, Electronics Section, Central Shopping Mall
+MOBILE: 9876543210
+EMAIL: arun.singh.kiosk15@gmail.com
+ADDRESS: 45 MG Road, Bangalore 560001
+
+================================================================================
+ACCUSED DETAILS
+================================================================================
+
+NAME: Munjappa (also referred as Munyappa in records)
+AGE: 42 years
+GENDER: Male
+KNOWN ALIASES: Munyappa, Manja
+DATE OF BIRTH: March 10, 1982
+RESIDENCE: 123 Domlur Lane, Bangalore 560071
+CRIMINAL HISTORY: Yes - 2 prior cases (2019, 2020)
+CURRENT STATUS: Arrested and in custody
+
+DISTINGUISHING FEATURES:
+- Height: 5'10"
+- Build: Medium
+- Distinguishing Mark: Scar on left arm
+
+================================================================================
+WITNESSES
+================================================================================
+
+WITNESS 1:
+NAME: Priya Sharma
+AGE: 45 years
+GENDER: Female
+OCCUPATION: Mall Security Officer
+DESIGNATION: Senior Security Officer
+MALL LOCATION: Central Entrance
+STATEMENT STATUS: Recorded
+
+WITNESS 2:
+NAME: Priya
+AGE: 28 years
+GENDER: Female
+OCCUPATION: CCTV Operator
+DESIGNATION: Surveillance Systems Operator
+STATEMENT STATUS: Recorded
+
+NOTE: Two different persons named Priya - Ages and roles differ significantly.
+      Flagged for clarification - See Anomaly Detection Report.
+
+WITNESS 3:
+NAME: Rajesh Kumar
+AGE: 55 years
+GENDER: Male
+OCCUPATION: Store Manager
+DESIGNATION: General Manager, Central Shopping Mall
+STATEMENT STATUS: Recorded
+
+INVESTIGATING OFFICER:
+NAME: Arun Kumar
+ID: DL-2025-CSI-4521
+DESIGNATION: Senior Constable
+YEARS OF SERVICE: 12 years
+BADGE STATUS: Valid
+
+================================================================================
+INCIDENT NARRATIVE
+================================================================================
+
+On January 15, 2025, at approximately 10:15 PM, the accused, Munjappa (also known 
+as Munyappa), was spotted acting suspiciously in the electronics section of Central 
+Shopping Mall. 
+
+Timeline:
+- 10:15 PM: Investigating Officer Arun Kumar was on patrol duty at the mall
+- 10:30 PM: Accused allegedly entered the electronics counter area
+- 10:35 PM: Shop owner Arun Kumar Singh noticed items missing from display
+- 10:40 PM: Investigating Officer Arun Kumar was called to the scene
+- 10:45 PM: Suspect arrested and brought to police station
+- 11:00 PM: CCTV footage reviewed by Priya (CCTV Operator)
+- 11:30 PM: FIR filed under IPC Sections 379, 380, and 406
+
+The accused was found in possession of electronics equipment valued at Rs. 2,50,000, 
+which matched the missing items from Kiosk 15. CCTV footage confirms the presence 
+of a person matching the accused's physical description at the time of theft.
+
+================================================================================
+STOLEN ITEMS DETAILS
+================================================================================
+
+TOTAL VALUE: Rs. 2,50,000 (Rupees Two Lakh Fifty Thousand)
+
+ITEMS STOLEN:
+1. Laptop Computer - Rs. 1,25,000 (Qty: 1)
+2. Mobile Phones - Rs. 75,000 (Qty: 5)
+3. Tablets - Rs. 35,000 (Qty: 3)
+4. Audio Devices - Rs. 15,000 (Qty: 4)
+
+RECOVERY STATUS: Items recovered from accused's possession at time of arrest
+CONDITION: Good - No damage
+
+================================================================================
+EVIDENCE COLLECTED
+================================================================================
+
+1. CCTV Footage: 09:00 PM to 11:00 PM on January 15, 2025
+   - Location: Multiple angles (Entrance, Electronics Section, Exit)
+   - Duration: 2 hours
+   - Status: Recorded and preserved
+
+2. Stolen Items: All 13 items recovered
+   - Status: In police custody
+   - Photographed and catalogued
+
+3. Witness Statements: 4 statements recorded
+   - Arun Kumar Singh (Complainant)
+   - Priya Sharma (Mall Security)
+   - Priya (CCTV Operator)
+   - Rajesh Kumar (Store Manager)
+
+4. Accused's Personal Items: Seized and catalogued
+   - Mobile phone
+   - Wallet
+   - ID documents
+
+================================================================================
+LEGAL SECTIONS APPLIED
+================================================================================
+
+1. Indian Penal Code (IPC) Section 379: THEFT
+   Punishment: Imprisonment up to 3 years and/or fine up to Rs. 1,000
+
+2. Indian Penal Code (IPC) Section 380: THEFT IN DWELLING HOUSE
+   Punishment: Imprisonment up to 7 years and/or fine up to Rs. 10,000
+
+3. Indian Penal Code (IPC) Section 406: CRIMINAL BREACH OF TRUST
+   Punishment: Imprisonment up to 7 years and/or fine up to Rs. 10,000
+
+4. Indian Penal Code (IPC) Section 34: COMMON INTENTION
+   (If involvement of other persons is confirmed)
+
+================================================================================
+INVESTIGATING OFFICER NOTES
+================================================================================
+
+OBSERVATIONS:
+- Accused was apprehended with stolen items in his possession
+- CCTV footage corroborates witness statements
+- Munjappa has prior criminal record (2019, 2020 cases)
+- All stolen items recovered in good condition
+- Complainant cooperating with investigation
+
+CONCERNS/ANOMALIES:
+- Name variations in records: "Munjappa" vs "Munyappa" - Requires standardization
+- Two different persons named "Priya" in case - Need clarification
+- Potential dual existence of "Arun Kumar" (Officer + Complainant relationship unclear)
+  [Note: Arun Kumar Singh (Shop Owner) vs Arun Kumar (Police Officer) - Different persons confirmed]
+
+NEXT STEPS:
+1. Complete forensic analysis of CCTV footage
+2. Take detailed statements from all witnesses
+3. Background check on accused
+4. Medical examination if needed
+5. Case file prepared for magistrate
+
+================================================================================
+REGISTRATION DETAILS
+================================================================================
+
+FIR REGISTERED BY: Police Officer Arun Kumar (Senior Constable)
+BADGE ID: DL-2025-CSI-4521
+REGISTRATION TIME: 12:30 AM on January 16, 2025
+WITNESS TO REGISTRATION: Inspector Vikram Singh
+POLICE STATION: Central Shopping Mall Police Station, Bangalore
+JURISDICTION: Central Bangalore District
+
+DIGITAL SIGNATURE HASH: A7F3E9B2C1D6E8F4A5B9C2D1E7F3G5H6
+DOCUMENT STATUS: ✓ Verified and Registered in Central Database
+
+================================================================================

@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import CaseList from './components/CaseList';
 import CaseWorkflow from './pages/CaseWorkflow';
 import HomePage from './pages/HomePage';
+import { ThemeProvider } from './contexts/ThemeContext';
+import ThemeToggle from './components/ThemeToggle';
 import './App.css';
 
 function App() {
@@ -11,9 +13,11 @@ function App() {
   const [loading, setLoading] = useState(false);
 
   return (
-    <Router>
-      <div className="app">
-        <nav className="navbar">
+    <ThemeProvider>
+      <Router>
+        <div className="app">
+          <ThemeToggle />
+          <nav className="navbar">
           <div className="navbar-brand">
             <Link to="/" className="brand-link">
               ⚖️ Lawyer Agent AI
@@ -39,10 +43,11 @@ function App() {
         </main>
 
         <footer className="app-footer">
-          <p>&copy; 2024 Lawyer Agent AI - Powered by LangGraph & FastAPI</p>
+          <p>&copy; 2024 Lawyer Agent AI. All rights reserved.</p>
         </footer>
       </div>
     </Router>
+    </ThemeProvider>
   );
 }
 

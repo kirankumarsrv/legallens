@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { entityAPI, EntityItem } from '../services/api';
+import { entityAPI } from '../services/api';
 import './EntitySummary.css';
 
 interface EntitySummaryProps {
@@ -7,12 +7,23 @@ interface EntitySummaryProps {
   onRefresh?: () => void;
 }
 
+interface NormalizedEntities {
+  persons?: string[];
+  dates?: string[];
+  sections?: string[];
+  case_numbers?: string[];
+  locations?: string[];
+  organizations?: string[];
+  authorities?: string[];
+  amounts?: string[];
+}
+
 const EntitySummary: React.FC<EntitySummaryProps> = ({ caseId, onRefresh }) => {
-  const [entities, setEntities] = useState<Record<string, EntityItem>>({});
+  const [entities, setEntities] = useState<NormalizedEntities>({});
   const [canonicalMap, setCanonicalMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
-  const [filter, setFilter] = useState<string>('all');
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     loadEntities();
@@ -32,28 +43,39 @@ const EntitySummary: React.FC<EntitySummaryProps> = ({ caseId, onRefresh }) => {
     }
   };
 
-  const getEntityTypeBadgeColor = (type: string): string => {
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }));
+  };
+
+  const getCategoryIcon = (type: string): string => {
+    const icons: Record<string, string> = {
+      persons: '👤',
+      dates: '📅',
+      organizations: '🏢',
+      locations: '📍',
+      sections: '⚖️',
+      case_numbers: '🔢',
+      authorities: '🏛️',
+      amounts: '💰',
+    };
+    return icons[type] || '📋';
+  };
+
+  const getCategoryColor = (type: string): string => {
     const colors: Record<string, string> = {
-      person: '#FF6B6B',
-      date: '#4ECDC4',
-      organization: '#45B7D1',
-      location: '#96CEB4',
-      section: '#FFEAA7',
-      fir_number: '#DFE6E9',
-      case_number: '#DFE6E9',
-      authority: '#A29BFE',
+      persons: '#667eea',
+      dates: '#4ECDC4',
+      organizations: '#45B7D1',
+      locations: '#96CEB4',
+      sections: '#FFEAA7',
+      case_numbers: '#DFE6E9',
+      authorities: '#A29BFE',
+      amounts: '#50E3C2',
     };
     return colors[type] || '#95A5A6';
   };
 
-  const filterEntities = () => {
-    if (filter === 'all') return entities;
-    return Object.fromEntries(
-      Object.entries(entities).filter(([_, item]) => item.type === filter)
-    );
-  };
-
-  const filteredEntities = filterEntities();
+  const totalEntities = Object.values(entities).reduce((sum, arr) => sum + (arr?.length || 0), 0);
 
   if (loading) {
     return <div className="entity-summary-loading">Loading entities...</div>;
@@ -63,92 +85,58 @@ const EntitySummary: React.FC<EntitySummaryProps> = ({ caseId, onRefresh }) => {
     <div className="entity-summary">
       <div className="entity-header">
         <h3>🏷️ Entity Summary</h3>
-        <button className="btn-refresh" onClick={loadEntities} title="Refresh entities">
-          ↻
-        </button>
+        <div className="entity-stats">
+          <span className="total-count">All ({totalEntities})</span>
+          <button className="btn-refresh" onClick={loadEntities} title="Refresh entities">
+            ↻
+          </button>
+        </div>
       </div>
 
       {error && <div className="entity-error">{error}</div>}
 
-      <div className="entity-filters">
-        <button
-          className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          All ({Object.keys(entities).length})
-        </button>
-        <button
-          className={`filter-btn ${filter === 'person' ? 'active' : ''}`}
-          onClick={() => setFilter('person')}
-        >
-          Persons ({Object.values(entities).filter(e => e.type === 'person').length})
-        </button>
-        <button
-          className={`filter-btn ${filter === 'date' ? 'active' : ''}`}
-          onClick={() => setFilter('date')}
-        >
-          Dates ({Object.values(entities).filter(e => e.type === 'date').length})
-        </button>
-        <button
-          className={`filter-btn ${filter === 'organization' ? 'active' : ''}`}
-          onClick={() => setFilter('organization')}
-        >
-          Organizations ({Object.values(entities).filter(e => e.type === 'organization').length})
-        </button>
-        <button
-          className={`filter-btn ${filter === 'location' ? 'active' : ''}`}
-          onClick={() => setFilter('location')}
-        >
-          Locations ({Object.values(entities).filter(e => e.type === 'location').length})
-        </button>
-        <button
-          className={`filter-btn ${filter === 'section' ? 'active' : ''}`}
-          onClick={() => setFilter('section')}
-        >
-          Sections ({Object.values(entities).filter(e => e.type === 'section').length})
-        </button>
-      </div>
-
-      {Object.keys(filteredEntities).length === 0 ? (
-        <div className="entity-empty">No entities found</div>
+      {totalEntities === 0 ? (
+        <div className="entity-empty">No entities extracted yet. Upload evidence or run compute to extract entities.</div>
       ) : (
-        <div className="entity-list">
-          {Object.entries(filteredEntities).map(([name, entity]) => (
-            <div key={name} className="entity-item">
-              <div className="entity-name">
-                <span
-                  className="entity-badge"
-                  style={{ backgroundColor: getEntityTypeBadgeColor(entity.type) }}
+        <div className="entity-categories">
+          {Object.entries(entities).map(([category, items]) => {
+            if (!items || items.length === 0) return null;
+            const isExpanded = expandedCategories[category];
+            
+            return (
+              <div key={category} className="entity-category">
+                <div 
+                  className="category-header"
+                  onClick={() => toggleCategory(category)}
+                  style={{ borderLeftColor: getCategoryColor(category) }}
                 >
-                  {entity.type}
-                </span>
-                <span className="entity-text">{name}</span>
-                <span className="entity-count">{entity.count}x</span>
+                  <div className="category-title">
+                    <span className="category-icon">{getCategoryIcon(category)}</span>
+                    <span className="category-name">{category.replace('_', ' ')}</span>
+                    <span className="category-count">({items.length})</span>
+                  </div>
+                  <button className="expand-btn">
+                    {isExpanded ? '×' : '→'}
+                  </button>
+                </div>
+                
+                {isExpanded && (
+                  <div className="category-content">
+                    {items.map((item: string, idx: number) => (
+                      <div key={idx} className="entity-tag">
+                        <span className="tag-text">{item}</span>
+                        {canonicalMap[item] && canonicalMap[item] !== item && (
+                          <span className="tag-canonical" title={`Normalized from: ${canonicalMap[item]}`}>
+                            ⟳
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-
-              {entity.roles && entity.roles.length > 0 && (
-                <div className="entity-roles">
-                  {entity.roles.map((role, idx) => (
-                    <span key={idx} className="role-badge">
-                      {role}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {canonicalMap[name] && canonicalMap[name] !== name && (
-                <div className="entity-normalized">
-                  <small>📌 Normalized from: {canonicalMap[name]}</small>
-                </div>
-              )}
-
-              {entity.evidence_source && (
-                <div className="entity-source">
-                  <small>📄 Source: {entity.evidence_source}</small>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

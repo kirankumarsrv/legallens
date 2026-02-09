@@ -1,0 +1,218 @@
+================================================================================
+MEDICAL EXAMINATION REPORT  
+================================================================================
+
+HOSPITAL NAME: Apollo Hospitals, Bangalore
+DEPARTMENT: Emergency & Trauma Care
+REPORT DATE: January 15, 2025
+REPORT TIME: 10:50 PM
+REPORT ID: AH-BNG-2025-004521
+
+PATIENT NAME: Munjappa
+CASE REFERENCE: BNG/2025/78945 (FIR)
+CASE NUMBER: CS-2025-BNG-45678
+EXAMINING PHYSICIAN: Dr. Rajesh Verma (MD, Emergency Medicine)
+PHYSICIAN REG. NO: MED-2019-045612
+
+================================================================================
+PATIENT INFORMATION
+================================================================================
+
+FULL NAME: Munjappa (also known as Munyappa)
+AGE: 42 years
+GENDER: Male
+DATE OF BIRTH: March 10, 1982
+OCCUPATION: Accused (Under Police Custody)
+ADMITTED VIA: Police escort - Emergency case
+ADMISSION TIME: 10:45 PM on January 15, 2025
+ADMISSION STATUS: Mandatory medical examination (Police custody)
+
+================================================================================
+CHIEF COMPLAINTS
+================================================================================
+
+1. Minor injuries on hands and arms (alleged resistance during arrest)
+2. Bruising on left forearm
+3. Minor abrasions on knuckles
+4. General physical examination for custody fitness
+
+================================================================================
+CLINICAL EXAMINATION FINDINGS
+================================================================================
+
+GENERAL CONDITION: Alert and oriented
+CONSCIOUSNESS LEVEL: Fully conscious, cooperative
+VITAL SIGNS:
+  - Blood Pressure: 128/82 mmHg (Normal)
+  - Pulse Rate: 78 bpm (Normal)
+  - Temperature: 37.2°C (Normal)
+  - Respiratory Rate: 16 breaths/min (Normal)
+  - Oxygen Saturation: 98% on room air (Normal)
+
+HEIGHT & WEIGHT:
+  - Height: 5'10" (178 cm)
+  - Weight: 82 kg
+  - BMI: 29.5 (Overweight)
+
+HEAD & NECK:
+  - No visible injuries
+  - No signs of head trauma
+  - Pupils equal and reactive
+
+CARDIOVASCULAR:
+  - Normal heart sounds
+  - No murmurs detected
+  - Regular heart rhythm
+
+RESPIRATORY:
+  - Clear bilateral air entry
+  - No wheezing or crackles
+  - Normal breath sounds
+
+ABDOMEN:
+  - Soft and non-tender
+  - No distension
+  - Normal bowel sounds
+
+EXTREMITIES:
+  - Left Forearm: Bruising (approximately 5x3 cm area)
+    Severity: Minor
+    Color: Reddish-blue (Fresh bruising)
+    Description: Consistent with blunt force trauma or struggle
+  
+  - Left Hand Knuckles: Minor abrasions (3-4 mm)
+    Severity: Superficial
+    Status: Does not require treatment
+  
+  - Right Arm: No visible injuries
+  
+  - Legs: No visible injuries
+
+NEUROLOGICAL EXAMINATION:
+  - Cognitive: Normal
+  - Gait: Normal
+  - Reflexes: Normal
+  - Coordination: Normal
+
+================================================================================
+DETAILED INJURY ANALYSIS
+================================================================================
+
+INJURY #1: LEFT FOREARM BRUISING
+  Location: Anterior aspect of left forearm
+  Size: 5 cm x 3 cm approximately
+  Color: Reddish-blue discoloration
+  Swelling: Minimal
+  Tenderness: Mild on palpation
+  Provisional Cause: Consistent with resistance during arrest/scuffle
+  Severity Level: MINOR
+  Treatment: Ice application recommended
+  Healing Time: 7-10 days expected
+
+INJURY #2: LEFT HAND ABRASIONS
+  Location: Dorsal surface of 2nd and 3rd knuckles
+  Size: Individual abrasions 3-4 mm each
+  Depth: Superficial (epidermis level)
+  Status: No bleeding observed
+  Treatment: Not required (self-limiting)
+  Healing Time: 3-5 days expected
+
+OTHER OBSERVATIONS:
+  - No signs of defensive injuries
+  - No evidence of sexual assault
+  - No signs of poisoning or drug overdose
+  - No visible scars except pre-existing scar on left arm
+    (Length: 8 cm, Location: Inner left arm, Age: Appears to be old wound)
+
+================================================================================
+LABORATORY INVESTIGATIONS (If conducted)
+================================================================================
+
+BLOOD TESTS: Not conducted (Not indicated for this case)
+URINE TESTS: Not conducted (Not indicated for this case)
+TOXICOLOGY SCREENING: Not requested by police
+
+Note: Medical examination was limited to injury assessment and custody fitness 
+determination. Comprehensive blood/toxicology screening can be ordered if required 
+by investigating officer.
+
+================================================================================
+CUSTODY FITNESS ASSESSMENT
+================================================================================
+
+QUESTIONS ADDRESSED:
+
+Q1: Is the accused fit for police custody?
+    ANSWER: YES - Patient is medically fit for custodial detention
+
+Q2: Can accused be subjected to custodial interrogation?
+    ANSWER: YES - No medical contraindications identified
+
+Q3: Are there any signs of torture or excessive force?
+    ANSWER: NO - Injuries are consistent with normal arrest procedures
+            Minor bruising suggests minimal struggle during apprehension
+
+Q4: Does accused require hospitalization?
+    ANSWER: NO - All injuries are minor and self-limiting
+            Outpatient management sufficient
+
+Q5: Is there any threat to life or serious harm?
+    ANSWER: NO - Vital signs normal, consciousness stable
+
+================================================================================
+CONCLUSION
+================================================================================
+
+MEDICAL OPINION:
+The accused, Munjappa, age 42, was examined on January 15, 2025 at 10:50 PM 
+at Apollo Hospitals, Bangalore. Physical examination reveals:
+
+1. Minor bruising on left forearm (5 cm x 3 cm) - consistent with blunt force 
+   trauma during arrest
+
+2. Superficial abrasions on left hand knuckles (3-4 mm) - minor and self-limiting
+
+3. All injuries are consistent with normal resistance during lawful arrest
+
+4. No signs of torture, excessive force, or medical neglect
+
+5. Patient is medically FIT FOR POLICE CUSTODY
+
+6. No hospitalization required
+
+7. Expected healing time: 7-10 days
+
+================================================================================
+PHYSICIAN'S CERTIFICATION
+================================================================================
+
+I certify that I have examined Munjappa, age 42 years, on January 15, 2025, 
+as per legal requirements for police custody medical examination.
+
+The injuries described above are consistent with his statement regarding 
+the incident and show no evidence of torture or gross misuse of force.
+
+The patient is medically fit for custodial detention and interrogation.
+
+PHYSICIAN SIGNATURE: Dr. Rajesh Verma
+MEDICAL REGISTRATION NO: MED-2019-045612
+SPECIALIZATION: Emergency Medicine, MD
+HOSPITAL LICENSE: HOSP-AH-BNG-2025-001
+
+DATE: January 15, 2025
+TIME: 10:55 PM
+HOSPITAL STAMP: [Apollo Hospitals Official Seal]
+
+================================================================================
+FOLLOW-UP RECOMMENDATIONS
+================================================================================
+
+1. Wound care: Keep left forearm clean and dry
+2. Pain management: Over-the-counter pain relievers if needed
+3. Follow-up: None required unless complications arise
+4. Additional tests: None indicated at this time
+5. Specialist consultation: Not required
+
+Medical records will be preserved for court proceedings if required.
+
+================================================================================
