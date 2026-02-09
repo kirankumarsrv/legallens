@@ -157,7 +157,7 @@ const ArgumentEditor: React.FC<ArgumentEditorProps> = ({
                   <p className="argument-text">{arg.argument}</p>
                   <div className="argument-details">
                     <div className="supporting-facts">
-                      <strong>Based on {arg.fact_ids.length} fact(s)</strong>
+                      <strong>Based on {arg.fact_ids?.length || 0} fact(s)</strong>
                     </div>
                     <span
                       className="status"

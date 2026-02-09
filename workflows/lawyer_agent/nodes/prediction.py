@@ -1,8 +1,10 @@
 """
 Phase 3: Prediction Node with backtrack/history support
 
-This node performs the same YEARWISE FAISS-based precedent retrieval
-and LLM-driven strategic assessment as before, but also:
+This node generates outcome predictions based on existing arguments ONLY.
+NO retrieval is performed - it uses the arguments already generated.
+
+Features:
 - Keeps a `prediction_history` list in `state` when `backtrack_enabled` is True
 - Detects edits to facts/arguments via state flags and forces recomputation
 - Allows restoring a prior prediction via `restore_prediction_index` in state
@@ -10,14 +12,12 @@ and LLM-driven strategic assessment as before, but also:
 Outputs appended to state:
 - `prediction` (current prediction text)
 - `prediction_confidence` (0-1 placeholder)
-- `similar_cases` (cases used for the current prediction)
 - `prediction_history` (list of prior predictions)
 """
 
 from datetime import datetime, timezone
 from copy import deepcopy
 
-from workflows.lawyer_agent.retrieval.precedents import retrieve_precedents
 from workflows.lawyer_agent.state import LawyerState
 
 
@@ -58,7 +58,6 @@ def prediction_node(
         try:
             item = state["prediction_history"][int(idx)]
             state["prediction"] = item.get("prediction")
-            state["similar_cases"] = deepcopy(item.get("similar_cases", []))
             state["prediction_confidence"] = item.get("prediction_confidence", 0.0)
             state["reasoning_trace"].append(
                 f"PHASE 3: Restored prediction from history index {idx}."
@@ -88,49 +87,61 @@ def prediction_node(
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "prediction": state.get("prediction"),
             "prediction_confidence": state.get("prediction_confidence", 0.0),
-            "similar_cases": deepcopy(state.get("similar_cases", [])),
             "analysis_snapshot": state.get("analysis", ""),
             "facts_snapshot": deepcopy(state.get("facts_approved_and_locked", [])),
+            "arguments_snapshot": deepcopy(state.get("argument_storage", {}).get_all_arguments() if state.get("argument_storage") else []),
         }
         state["prediction_history"].append(hist_item)
         # Trim history
         if len(state["prediction_history"]) > max_history:
             state["prediction_history"] = state["prediction_history"][-max_history:]
 
-    # Retrieve similar cases using METADATA-FIRST approach
-    query_text = f"{state.get('analysis','')[:300]} { ' '.join(state.get('facts_raw',[])[:1]) }"
-    similar_cases = retrieve_precedents(
-        query=query_text,
-        faiss_store=faiss_store,
-        embedding_model=embedding_model,
-        k=7,
-    )
-
-    if not similar_cases:
-        state["prediction"] = "Insufficient case law for prediction."
-        state["similar_cases"] = []
+    # Workflow 3: NO RETRIEVAL - Use existing arguments only
+    # Get arguments from argument_storage
+    argument_storage = state.get('argument_storage')
+    
+    if not argument_storage:
+        state["prediction"] = "No arguments available. Please generate arguments first (Workflow 2)."
         state["prediction_confidence"] = 0.0
         state["reasoning_trace"].append(
-            "PHASE 3: No similar cases found; prediction skipped."
+            "PHASE 3: No arguments available; prediction skipped."
         )
         return state
+    
+    arguments = argument_storage.get_all_arguments()
+    
+    if not arguments:
+        state["prediction"] = "No arguments found. Please run argument generation first (Workflow 2)."
+        state["prediction_confidence"] = 0.0
+        state["reasoning_trace"].append(
+            "PHASE 3: No arguments found; prediction skipped."
+        )
+        return state
+    
+    print(f"   📊 Using {len(arguments)} arguments to generate prediction (NO retrieval)")
 
-    # LLM-driven prediction
-    cases_text = "\n\n".join([f"Case: {c.get('content','')[:150]}..." for c in similar_cases[:5]])
+    # Build arguments text for the prompt
+    arguments_text = "\n\n".join([
+        f"**Argument {i+1}:**\n{arg.get('text', arg.get('content', str(arg)))}"
+        for i, arg in enumerate(arguments[:10])  # Limit to top 10 arguments
+    ])
 
-    prompt = f"""You are a litigation strategist. Assess the strength of this legal position based on precedent patterns.
+    # LLM-driven prediction based on arguments only
+    prompt = f"""You are a litigation strategist. Assess the strength of this legal position based on the arguments provided.
 
 **LEGAL QUESTION:**
 {state.get('question')}
 
-**CASE ANALYSIS:**
-{state.get('analysis','')[:500]}
+**ARGUMENTS DEVELOPED:**
+{arguments_text}
 
-**SIMILAR PRECEDENT CASES:**
-{cases_text}
+Based ONLY on the arguments above, provide a strategic assessment including:
+1. **Strength Rating**: STRONG/MODERATE/WEAK
+2. **Probability Estimate**: 0-100% chance of success
+3. **Confidence Level**: LOW/MEDIUM/HIGH
+4. **Key Recommendations**: Specific action items
 
-Provide a strategic assessment (rating: STRONG/MODERATE/WEAK), a probability estimate (0-100%), a confidence level (LOW/MEDIUM/HIGH), and key recommendations.
-Be conservative and cite specific cases when applicable.
+Be conservative and cite specific arguments when applicable.
 """
 
     # Use LLM safely (some LLMs expose `generate`, others `call` or `complete`)
@@ -144,7 +155,6 @@ Be conservative and cite specific cases when applicable.
 
     # Update state with new prediction
     state["prediction"] = prediction
-    state["similar_cases"] = similar_cases
     state["prediction_confidence"] = 0.7  # Placeholder - better parsing can set this
 
     # Clear edit flags now that prediction has been regenerated
@@ -153,7 +163,7 @@ Be conservative and cite specific cases when applicable.
 
     # Audit trail
     state["reasoning_trace"].append(
-        f"PHASE 3: Retrieved {len(similar_cases)} similar cases. Outcome prediction generated."
+        f"PHASE 3: Generated outcome prediction based on {len(arguments)} arguments (NO retrieval)."
     )
 
     return state

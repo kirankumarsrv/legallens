@@ -58,6 +58,16 @@ class LawyerState(TypedDict):
     source_language_name: Optional[str]
     # Extracted entities from evidence (persons, dates, sections, firs...)
     entities: Optional[Dict[str, Any]]
+    # Normalized entities (deduplicated, fuzzy-matched)
+    normalized_entities: Optional[Dict[str, Any]]
+    # Entity conflicts detected (same person in multiple roles)
+    entity_conflicts: Optional[List[Dict[str, Any]]]
+    # Clarification questions for lawyer (ambiguous entities)
+    entity_clarifications: Optional[List[Dict[str, Any]]]
+    # Human-readable entity summary (markdown)
+    entity_summary: Optional[str]
+    # Canonical mapping for entity names (original -> canonical)
+    entity_canonical_map: Optional[Dict[str, str]]
     # Timeline constructed from dates and entities
     timeline: Optional[List[Dict[str, Any]]]
     # Cross-evidence contradictions (list of issues for human review)

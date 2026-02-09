@@ -1,0 +1,148 @@
+===================================================================
+TEST CASE: NER & ANOMALY DETECTION
+===================================================================
+
+Case: State vs. Munyappa - Theft Case with Name Variations & Role Conflicts
+
+Problem Statement:
+------------------
+
+On January 15, 2025, at approximately 10:30 PM, a theft incident occurred at the Central Shopping Mall, 
+Bangalore. The accused, Munjappa (also known as Munyappa, Age: 42, Resident of 123 Domlur Lane, 
+Bangalore 560071), allegedly stole electronics worth Rs. 2,50,000.
+
+Key Persons Involved:
+- Accused: Munjappa (also referred as Munyappa in police records, DOB: 1982-03-10)
+- Complainant: Arun Kumar Singh (Age: 38, Shop owner at Kiosk 15, Central Mall)
+- Police Officer: Arun Kumar (ID: DL-2025-CSI-4521, Senior Constable, Bangalore Police)
+- Witness 1: Priya Sharma (Age: 45, Mall Security Officer)
+- Witness 2: Priya (Age: 28, CCTV Operator at Central Shopping Complex)
+- Witness 3: Rajesh Kumar (Age: 55, Store Manager, Central Shopping Mall)
+
+Timeline of Events:
+- 10:15 PM: Arun Kumar (police officer) was on patrol duty at Central Shopping Mall
+- 10:30 PM: Munjappa (accused) allegedly entered the electronics section
+- 10:35 PM: Arun Kumar Singh (shop owner) noticed items missing from display
+- 10:40 PM: Arun Kumar (police officer) was called to the scene and arrested the suspect
+- 10:45 PM: Police arrived with Arun Kumar (both officer AND alleged partner) at station
+- 11:00 PM: CCTV footage reviewed by Priya (both security and CCTV operator) at Central Shopping Complex
+- 11:30 PM: FIR filed under IPC Sections 379, 380, and 406
+
+Sequence of Events:
+- The accused, Munyappa (variation spelling), approached the electronics counter
+- Shop owner Arun Kumar Singh noticed suspicious behavior
+- Police Officer Arun Kumar was patrolling nearby
+- Items worth Rs. 2,50,000 were found missing
+- CCTV footage shows person matching accused's description
+- But footage shows Police Officer Arun Kumar also present during theft time
+- Accused was apprehended on January 16, 2025 at 2:15 AM
+
+Evidence Available:
+- CCTV footage from 09:00 PM to 11:00 PM on January 15, 2025
+- Medical report from Apollo Hospital (incident-related injuries)
+- Police FIR Number: BNG/2025/78945
+- Case Number: CS-2025-BNG-45678
+- Witness statements (Priya Sharma vs Priya - need clarification)
+- Stolen items recovery report dated January 16, 2025
+- Police Officer Arun Kumar's duty schedule (shows he was on patrol)
+- Store Manager Rajesh Kumar's statement
+- Munjappa's criminal history (2 prior cases from 2019 and 2020)
+
+Legal Provisions Applicable:
+- Indian Penal Code Section 379 (Theft)
+- Indian Penal Code Section 380 (Theft in Dwelling House)
+- Indian Penal Code Section 406 (Criminal Breach of Trust)
+- Indian Penal Code Section 34 (Acts Done by Several Persons in Furtherance of Common Intention)
+
+ANOMALIES TO TEST (For System Validation):
+================================
+
+ANOMALY 1 - Name Variations (Fuzzy Matching):
+- "Munjappa" appears 6 times
+- "Munyappa" appears 3 times
+- These should be normalized to one canonical form
+- Expected: System should detect 88%+ similarity and consolidate
+
+ANOMALY 2 - Role Conflict:
+- "Arun Kumar" appears as TWO different people with DIFFERENT ROLES:
+  * Arun Kumar Singh = Complainant (Shop Owner)
+  * Arun Kumar = Police Officer (Constable, Duty ID: DL-2025-CSI-4521)
+- BUT they appear together in timeline on January 15 at 10:40-10:45 PM
+- This is VALID but needs clarification: Are they the same person with dual roles? Or different?
+- Expected: System should flag as HIGH severity conflict
+
+ANOMALY 3 - Name Ambiguity:
+- "Priya" appears as TWO people:
+  * Priya Sharma = Mall Security Officer
+  * Priya = CCTV Operator
+- Different last names, different ages (45 vs 28)
+- Roles explicitly different
+- Expected: System should flag as POTENTIAL duplicate OR two separate persons - needs lawyer clarity
+
+ANOMALY 4 - Duplicate Person Reference:
+- "Rajesh Kumar" appears 2 times in different contexts
+- Age is consistent (55)
+- Role is consistent (Store Manager)
+- Expected: Fuzzy match should consolidate as SAME person
+
+Expected System Output When Processing:
+======================================
+
+✅ ENTITIES EXTRACTED:
+   - Persons: Munjappa/Munyappa (1 canonical), Arun Kumar Singh, Arun Kumar, Priya Sharma, Priya, Rajesh Kumar
+   - Dates: January 15 2025, January 16 2025, January 15 2025
+   - Sections: 379, 380, 406, 34
+   - Case Numbers: BNG/2025/78945 (FIR), CS-2025-BNG-45678 (Case)
+   - Locations: Central Shopping Mall (Bangalore), Domlur Lane, Apollo Hospital
+   - Amount: Rs. 2,50,000
+
+⚠️ CONFLICTS DETECTED:
+   1. HIGH: "Arun Kumar" - Appears as BOTH [complainant] AND [police] 
+      - AUN KUMAR SINGH = Shop owner filing complaint
+      - ARUN KUMAR = Police officer on duty
+      - Same first/last name, different roles
+      - Clarification needed: Are they same person or different?
+      
+   2. MEDIUM: "Priya" - Appears as TWO PEOPLE with different last names and ages
+      - PRIYA SHARMA (45) = Security Officer
+      - PRIYA (28) = CCTV Operator
+      - Different ages, roles, last name
+      - System: Likely two different people, but flag for verification
+
+   3. NAME VARIATION: "Munjappa" ↔ "Munyappa" (88% similar)
+      Status: NORMALIZED to "Munjappa"
+
+❓ CLARIFICATION QUESTIONS (For Lawyer):
+   Q1: "Arun" appears as both the shop owner (complainant) and police officer. Are these the 
+        same person or two different people named Arun? If different, what is the full name 
+        of the police officer?"
+   
+   Q2: "Two people named 'Priya' are mentioned - Priya Sharma (45, security) and Priya (28, CCTV). 
+        Are these definitely two separate individuals, or should we investigate further?"
+   
+   Q3: "Should we consolidate all 'Munjappa'/'Munyappa' references to one canonical form? 
+        Confirmed to be same accused?"
+
+===================================================================
+HOW TO TEST IN FRONTEND:
+===================================================================
+
+1. Open http://localhost:5173/
+2. Create a new case (or use existing)
+3. Go to "Case Workflow" 
+4. Paste this entire problem statement into "Problem Statement" textarea
+5. Click "Save Problem"
+6. Click "Run Compute" (Workflow 1: Fact Retrieval with Entity Extraction)
+7. Wait for completion
+8. Go to "🏷️ Entities & Conflicts" tab
+9. Verify:
+   - EntitySummary shows 6 persons (should auto-consolidate Munjappa/Munyappa → 5)
+   - ConflictsPanel shows 2 HIGH/MEDIUM conflicts
+   - ClarificationQuestions shows 3 lawyer questions
+   - EntityMapping shows "Munyappa → Munjappa" normalization
+
+Expected Test Result: ✅ PASS
+All anomalies detected and flagged. Lawyer can review and answer clarification questions.
+Once answered, anomalies are resolved for downstream workflows.
+
+===================================================================

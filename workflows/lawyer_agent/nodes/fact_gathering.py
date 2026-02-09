@@ -56,6 +56,18 @@ def fact_gathering_node(
 
     fact_storage = state["fact_storage"]
 
+    # Check if facts are already locked - if so, skip retrieval
+    locked_facts = fact_storage.get_locked_facts()
+    if locked_facts:
+        print("\n✅ USING LOCKED FACTS (Skipping retrieval)")
+        print(f"   Found {len(locked_facts)} locked facts from previous analysis")
+        
+        # Return early with locked facts
+        state["facts"] = locked_facts
+        state["facts_approved_and_locked"] = True
+        state["fact_source_breakdown"] = {"locked": len(locked_facts)}
+        return state
+
     print("\n📋 PHASE 1: FACT GATHERING (MULTI-SOURCE)")
 
     # Build query: evidence FIRST, then question

@@ -198,6 +198,13 @@ class FactStorage:
         
         return self.get_approved_facts()
     
+    def get_locked_facts(self) -> List[Dict[str, Any]]:
+        """Get all locked facts (facts already approved and locked from previous phase)."""
+        return [
+            fact 
+            for fact in self.facts.values() 
+            if fact.get("status") == "approved_locked"
+        ]
     def mark_fact_used_in_phase(self, fact_id: str, phase: str) -> bool:
         """Record that a fact was used in a specific phase for audit trail."""
         if fact_id not in self.facts:

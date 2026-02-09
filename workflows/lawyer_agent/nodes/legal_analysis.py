@@ -71,44 +71,12 @@ def legal_analysis_node(state: LawyerState, chroma_stores: dict, embedding_model
         traceback.print_exc()
         statutes = []
     
-    # Stage 2: Retrieve ONLY precedents (case law from yearwise FAISS)
-    # This is NEW retrieval (not re-retrieval) - we're adding precedent cases
-    try:
-        facts_raw = state.get('facts_raw') or []
-        facts_snippet = ' '.join([str(f) for f in facts_raw[:2]]) if facts_raw else ""
-        combined_query = f"{state['question']} {facts_snippet}".strip()
-        print(f"   ✓ Combined query built: {len(combined_query)} chars")
-        
-        # If revise_action contains year constraints, pass them to precedent retrieval
-        target_years = None
-        revise_action = state.get('revise_action')
-        if revise_action and isinstance(revise_action, dict) and revise_action.get('constraint_years'):
-            target_years = revise_action.get('constraint_years')
-    except Exception as e:
-        print(f"   ❌ ERROR building query: {e}")
-        traceback.print_exc()
-        combined_query = state.get('question', '')
-        target_years = None
-    
-    # Prefer precedents produced during Phase 1 (fact gathering)
-    precedents = state.get('precedents')
-    if precedents:
-        print(f"   ✓ Using {len(precedents)} precedents already retrieved in Phase 1")
-    else:
-        try:
-            precedents = retrieve_precedents(
-                    query=combined_query,
-                    faiss_store=faiss_store,
-                    embedding_model=embedding_model,
-                    k=1,
-                    target_years=target_years
-                )
-        except Exception as e:
-            print(f"   ❌ Error during precedent retrieval: {e}")
-            traceback.print_exc()
-            precedents = []
-    
-    print(f"   📚 Retrieved {len(precedents)} precedent cases for legal analysis")
+    # Stage 2: NO PRECEDENT RETRIEVAL IN WORKFLOW 2
+    # Workflow 2 only uses locked facts to generate arguments via LLM
+    # No additional retrieval should happen here
+    print("   🚫 Skipping precedent retrieval (Workflow 2: Argument Generation only)")
+    precedents = []
+    print(f"   📚 Using 0 precedent cases (arguments based on locked facts only)")
     
     # Stage 3: LLM reasoning
     # Build statute text from approved facts
@@ -192,12 +160,12 @@ def legal_analysis_node(state: LawyerState, chroma_stores: dict, embedding_model
         prompt += (f"\n\n**IMPORTANT NOTE:** The original evidence is in {language_name}. "
                    f"Tools are available if you need translation or term extraction for clarity.")
     
-    # Call LLM with tools
+    # Call LLM with tools - use high max_tokens for complete legal analysis
     try:
-        analysis = llm.generate(prompt, tools=tools, tool_choice="auto") if tools else llm.generate(prompt)
+        analysis = llm.generate(prompt, max_tokens=4096, tools=tools, tool_choice="auto") if tools else llm.generate(prompt, max_tokens=4096)
     except TypeError:
         # Fallback for LLM implementations that don't support tools parameter
-        analysis = llm.generate(prompt)
+        analysis = llm.generate(prompt, max_tokens=4096)
     
     # Update state
     state["analysis"] = analysis
@@ -210,10 +178,21 @@ def legal_analysis_node(state: LawyerState, chroma_stores: dict, embedding_model
 
     # Create ArgumentStorage and extract candidate arguments from analysis
     arg_store: ArgumentStorage = state.get("argument_storage") or ArgumentStorage()
+    
+    # Clear any existing pending arguments to avoid duplicates when re-running
+    cleared_count = arg_store.clear_pending_arguments()
+    if cleared_count > 0:
+        print(f"   🗑️  Cleared {cleared_count} pending arguments from previous run")
 
-    # Naive extraction: try to parse PRO-ARGUMENTS section from the analysis text
+    # Extract PRO-ARGUMENTS section from the analysis text
     analysis_text = analysis if isinstance(analysis, str) else str(analysis)
     pro_args = []
+    
+    # Get fact IDs from locked facts to link to arguments
+    fact_ids = []
+    if fact_storage:
+        fact_ids = [fact.get('id') for fact in fact_storage.get_approved_facts() if fact.get('id')]
+    
     try:
         lower = analysis_text.lower()
         start_idx = lower.find("pro-arguments")
@@ -223,28 +202,24 @@ def legal_analysis_node(state: LawyerState, chroma_stores: dict, embedding_model
             # find end (counter-arguments or next section)
             end_idx = lower.find("counter-arguments", start_idx)
             if end_idx == -1:
-                # try numeric section marker
                 end_idx = lower.find("3.", start_idx)
             section = analysis_text[start_idx:end_idx if end_idx != -1 else None]
-            # split lines and pick bullets/lines
-            for line in section.splitlines():
-                line = line.strip().lstrip("-*")
-                if not line:
-                    continue
-                # basic filter to avoid heading lines
-                if len(line) > 20:
-                    pro_args.append(line)
-    except Exception:
+            # split by numbered items (1., 2., 3.)
+            import re
+            items = re.split(r'\n\s*\d+\.\s+', section)
+            for item in items[1:][:3]:  # Skip first empty split, take max 3 arguments
+                item = item.strip()
+                if len(item) > 30:  # Filter out headers
+                    pro_args.append(item)
+    except Exception as e:
+        print(f"   ⚠️  Error extracting arguments: {e}")
         pro_args = []
 
-    # If no pro_args extracted, create a fallback single argument from analysis summary
-    if not pro_args:
-        snippet = analysis_text[:400]
-        pro_args = [f"Summary argument: {snippet}"]
-
-    # Add up to 10 arguments into storage
-    for a in pro_args[:10]:
-        arg_store.add_argument(content=a, legal_basis="")
+    # Add extracted arguments with fact linking
+    for a in pro_args:
+        arg_store.add_argument(content=a, legal_basis="", fact_ids=fact_ids)
+    
+    print(f"   ✅ Generated {len(pro_args)} arguments linked to {len(fact_ids)} facts")
 
     state["argument_storage"] = arg_store
     

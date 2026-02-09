@@ -15,7 +15,7 @@ class ArgumentStorage:
         self.approved_arg_ids: List[str] = []
         self.rejected_arg_ids: List[str] = []
 
-    def add_argument(self, content: str, legal_basis: str = None, relevance_score: float = 0.5) -> str:
+    def add_argument(self, content: str, legal_basis: str = None, relevance_score: float = 0.5, fact_ids: List[str] = None) -> str:
         arg_id = str(uuid.uuid4())
         self.arguments[arg_id] = {
             "id": arg_id,
@@ -23,6 +23,7 @@ class ArgumentStorage:
             "legal_basis": legal_basis or "",
             "relevance_score": relevance_score,
             "status": "pending",
+            "fact_ids": fact_ids or [],
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
         }
@@ -72,6 +73,13 @@ class ArgumentStorage:
 
     def get_pending_arguments(self) -> List[Dict[str, Any]]:
         return [a for a in self.arguments.values() if a["status"] == "pending"]
+
+    def clear_pending_arguments(self) -> int:
+        """Delete all pending arguments. Returns count of deleted arguments."""
+        pending_ids = [arg_id for arg_id, arg in self.arguments.items() if arg["status"] == "pending"]
+        for arg_id in pending_ids:
+            del self.arguments[arg_id]
+        return len(pending_ids)
 
     def get_approved_arguments(self) -> List[Dict[str, Any]]:
         return [self.arguments[i] for i in self.approved_arg_ids if i in self.arguments]
