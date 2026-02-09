@@ -6,10 +6,11 @@ interface CaseListProps {
   cases: CaseInfo[];
   onSelectCase: (caseId: string) => void;
   onCreateCase: () => void;
+  onDeleteCase: (caseId: string) => void;
   loading: boolean;
 }
 
-const CaseList: React.FC<CaseListProps> = ({ cases, onSelectCase, onCreateCase, loading }) => {
+const CaseList: React.FC<CaseListProps> = ({ cases, onSelectCase, onCreateCase, onDeleteCase, loading }) => {
   if (loading) {
     return <div className="case-list loading">Loading cases...</div>;
   }
@@ -30,14 +31,28 @@ const CaseList: React.FC<CaseListProps> = ({ cases, onSelectCase, onCreateCase, 
       ) : (
         <ul className="case-items">
           {cases.map((caseItem) => (
-            <li key={caseItem.case_id} className="case-item" onClick={() => onSelectCase(caseItem.case_id)}>
-              <div className="case-name">{caseItem.case_name}</div>
-              <div className="case-meta">
-                <span className="status">{caseItem.status}</span>
-                <span className="fact-count">{caseItem.fact_count} facts</span>
-                <span className="arg-count">{caseItem.argument_count} arguments</span>
+            <li key={caseItem.case_id} className="case-item">
+              <div onClick={() => onSelectCase(caseItem.case_id)} style={{ flex: 1, cursor: 'pointer' }}>
+                <div className="case-name">{caseItem.case_name}</div>
+                <div className="case-meta">
+                  <span className="status">{caseItem.status}</span>
+                  <span className="fact-count">{caseItem.fact_count} facts</span>
+                  <span className="arg-count">{caseItem.argument_count} arguments</span>
+                </div>
+                <div className="case-time">Created: {new Date(caseItem.created_at).toLocaleDateString()}</div>
               </div>
-              <div className="case-time">Created: {new Date(caseItem.created_at).toLocaleDateString()}</div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (window.confirm(`Are you sure you want to delete "${caseItem.case_name}"?`)) {
+                    onDeleteCase(caseItem.case_id);
+                  }
+                }}
+                className="btn-delete"
+                title="Delete case"
+              >
+                🗑️
+              </button>
             </li>
           ))}
         </ul>

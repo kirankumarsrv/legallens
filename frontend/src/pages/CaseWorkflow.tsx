@@ -12,6 +12,10 @@ import {
 import FactEditor from '../components/FactEditor';
 import ArgumentEditor from '../components/ArgumentEditor';
 import PredictionViewer from '../components/PredictionViewer';
+import EntitySummary from '../components/EntitySummary';
+import ConflictsPanel from '../components/ConflictsPanel';
+import ClarificationQuestions from '../components/ClarificationQuestions';
+import EntityMapping from '../components/EntityMapping';
 import './CaseWorkflow.css';
 
 const CaseWorkflow: React.FC = () => {
@@ -31,7 +35,7 @@ const CaseWorkflow: React.FC = () => {
   const [problemStatement, setProblemStatement] = useState<string>('');
   const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
   const [evidenceFilePaths, setEvidenceFilePaths] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<'facts' | 'arguments' | 'predictions'>('facts');
+  const [activeTab, setActiveTab] = useState<'facts' | 'arguments' | 'predictions' | 'entities'>('facts');
   
   // Retrieval tool toggles
   const [enableWebSearch, setEnableWebSearch] = useState(true);
@@ -99,6 +103,7 @@ const CaseWorkflow: React.FC = () => {
 
     // Use SSE stream endpoint to get per-node progress
     const params = new URLSearchParams();
+    params.set('workflow', 'fact_retrieval');  // Workflow 1: Only fact retrieval
     params.set('enable_web_search', enableWebSearch.toString());
     params.set('enable_research_papers', enableResearchPapers.toString());
     params.set('enable_google_scholar', enableGoogleScholar.toString());
@@ -134,6 +139,136 @@ const CaseWorkflow: React.FC = () => {
         }
       } catch (err) {
         // sometimes server sends plain strings
+        setReasoningTrace((s) => [...s, ev.data]);
+      }
+    };
+
+    es.onerror = (e) => {
+      setReasoningTrace((s) => [...s, 'Stream error or closed']);
+      es.close();
+      setComputing(false);
+    };
+  };
+
+  const handleArgumentGeneration = async () => {
+    if (!caseId) return;
+    setComputing(true);
+    setReasoningTrace([]);
+
+    // Workflow 2: Argument Generation (uses locked facts)
+    const params = new URLSearchParams();
+    params.set('workflow', 'argument_generation');
+    const url = `${(import.meta.env.VITE_API_BASE as string) || 'http://localhost:8000'}/cases/${caseId}/compute/stream?${params.toString()}`;
+
+    const es = new EventSource(url);
+    es.onmessage = (ev) => {
+      try {
+        const data = JSON.parse(ev.data);
+        if (data.phase === 'start') {
+          setReasoningTrace((s) => [...s, data.message]);
+        } else if (data.phase === 'legal_analysis') {
+          setReasoningTrace((s) => [...s, `${data.phase}: ${data.message}`]);
+        } else if (data.phase === 'done') {
+          if (data.analysis) setCurrentAnalysis(data.analysis);
+          if (Array.isArray(data.reasoning_trace)) setReasoningTrace((s) => [...s, ...data.reasoning_trace]);
+          es.close();
+          setComputing(false);
+          loadCaseData();
+        } else if (data.phase === 'error') {
+          setReasoningTrace((s) => [...s, `ERROR: ${data.message}`]);
+          es.close();
+          setComputing(false);
+        } else {
+          setReasoningTrace((s) => [...s, JSON.stringify(data)]);
+        }
+      } catch (err) {
+        setReasoningTrace((s) => [...s, ev.data]);
+      }
+    };
+
+    es.onerror = (e) => {
+      setReasoningTrace((s) => [...s, 'Stream error or closed']);
+      es.close();
+      setComputing(false);
+    };
+  };
+
+  const handlePrediction = async () => {
+    if (!caseId) return;
+    setComputing(true);
+    setReasoningTrace([]);
+
+    // Workflow 3: Prediction (uses arguments)
+    const params = new URLSearchParams();
+    params.set('workflow', 'prediction');
+    const url = `${(import.meta.env.VITE_API_BASE as string) || 'http://localhost:8000'}/cases/${caseId}/compute/stream?${params.toString()}`;
+
+    const es = new EventSource(url);
+    es.onmessage = (ev) => {
+      try {
+        const data = JSON.parse(ev.data);
+        if (data.phase === 'start') {
+          setReasoningTrace((s) => [...s, data.message]);
+        } else if (data.phase === 'prediction') {
+          setReasoningTrace((s) => [...s, `${data.phase}: ${data.message}`]);
+        } else if (data.phase === 'done') {
+          if (data.prediction) setCurrentPrediction(data.prediction);
+          if (typeof data.prediction_confidence === 'number') setCurrentConfidence(data.prediction_confidence);
+          if (Array.isArray(data.reasoning_trace)) setReasoningTrace((s) => [...s, ...data.reasoning_trace]);
+          es.close();
+          setComputing(false);
+          loadCaseData();
+        } else if (data.phase === 'error') {
+          setReasoningTrace((s) => [...s, `ERROR: ${data.message}`]);
+          es.close();
+          setComputing(false);
+        } else {
+          setReasoningTrace((s) => [...s, JSON.stringify(data)]);
+        }
+      } catch (err) {
+        setReasoningTrace((s) => [...s, ev.data]);
+      }
+    };
+
+    es.onerror = (e) => {
+      setReasoningTrace((s) => [...s, 'Stream error or closed']);
+      es.close();
+      setComputing(false);
+    };
+  };
+
+  const handleDraftGeneration = async () => {
+    if (!caseId) return;
+    setComputing(true);
+    setReasoningTrace([]);
+
+    // Workflow 4: Draft Generation (uses all context)
+    const params = new URLSearchParams();
+    params.set('workflow', 'draft_generation');
+    const url = `${(import.meta.env.VITE_API_BASE as string) || 'http://localhost:8000'}/cases/${caseId}/compute/stream?${params.toString()}`;
+
+    const es = new EventSource(url);
+    es.onmessage = (ev) => {
+      try {
+        const data = JSON.parse(ev.data);
+        if (data.phase === 'start') {
+          setReasoningTrace((s) => [...s, data.message]);
+        } else if (data.phase === 'draft_generation') {
+          setReasoningTrace((s) => [...s, `${data.phase}: ${data.message}`]);
+        } else if (data.phase === 'done') {
+          if (data.draft) setCurrentDraft(data.draft);
+          if (Array.isArray(data.reasoning_trace)) setReasoningTrace((s) => [...s, ...data.reasoning_trace]);
+          es.close();
+          setComputing(false);
+          loadCaseData();
+        } else if (data.phase === 'error') {
+          setReasoningTrace((s) => [...s, `ERROR: ${data.message}`]);
+          es.close();
+          setComputing(false);
+        } else {
+          setReasoningTrace((s) => [...s, JSON.stringify(data)]);
+        }
+      } catch (err) {
         setReasoningTrace((s) => [...s, ev.data]);
       }
     };
@@ -319,18 +454,21 @@ const CaseWorkflow: React.FC = () => {
               if (!caseId) return;
               try {
                 setComputing(true);
+                console.log('🔒 Before lock - Facts:', facts.map(f => ({ id: f.id, status: f.status })));
                 await (await import('../services/api')).factAPI.lockAll(caseId);
                 // reload facts and UI
                 await loadCaseData();
+                console.log('🔒 After lock and reload - Facts:', facts.map(f => ({ id: f.id, status: f.status })));
                 alert('Locked all approved facts');
               } catch (err) {
                 console.error('Lock all failed', err);
                 alert('Failed to lock all approved facts');
               } finally {
                 setComputing(false);
+                console.log('🔒 Computing set to false, should enable buttons now');
               }
             }}
-            disabled={computing}
+            disabled={computing || facts.filter((f) => f.status === 'approved').length === 0}
           >
             Lock All Approved
           </button>
@@ -340,11 +478,11 @@ const CaseWorkflow: React.FC = () => {
               if (!caseId) return;
               try {
                 setComputing(true);
-                // Lock approved facts then trigger compute using locked facts only
+                // Lock approved facts then trigger argument generation workflow
                 await factAPI.lockAll(caseId);
                 await loadCaseData();
-                // start compute stream (uses locked facts)
-                await handleRunCompute();
+                // Workflow 2: Argument Generation (uses locked facts)
+                await handleArgumentGeneration();
               } catch (err) {
                 console.error('Use locked facts failed', err);
                 alert('Failed to lock and run analysis');
@@ -352,7 +490,7 @@ const CaseWorkflow: React.FC = () => {
                 setComputing(false);
               }
             }}
-            disabled={computing || facts.filter((f) => f.status === 'approved').length === 0}
+            disabled={computing || facts.filter((f) => f.status === 'approved' || f.status === 'approved_locked').length === 0}
           >
             Use Locked Facts for Analysis
           </button>
@@ -361,20 +499,30 @@ const CaseWorkflow: React.FC = () => {
             onClick={async () => {
               if (!caseId) return;
               try {
-                setComputing(true);
-                const resp = await (await import('../services/api')).caseAPI.generateDraft(caseId);
-                if (resp.draft) {
-                  setCurrentDraft(resp.draft);
-                  alert('Draft generated successfully');
-                }
+                // Workflow 3: Prediction (uses arguments)
+                await handlePrediction();
+              } catch (err) {
+                console.error('Prediction generation failed', err);
+                alert('Failed to generate prediction');
+              }
+            }}
+            disabled={computing || arguments_.filter((a) => a.status === 'approved' || a.status === 'approved_locked').length === 0}
+          >
+            🔮 Generate Prediction
+          </button>
+          <button
+            className="btn-primary"
+            onClick={async () => {
+              if (!caseId) return;
+              try {
+                // Workflow 4: Draft Generation (uses all context)
+                await handleDraftGeneration();
               } catch (err) {
                 console.error('Draft generation failed', err);
                 alert('Failed to generate draft');
-              } finally {
-                setComputing(false);
               }
             }}
-            disabled={computing || !currentPrediction}
+            disabled={computing || arguments_.filter((a) => a.status === 'approved' || a.status === 'approved_locked').length === 0}
           >
             📝 Generate Draft
           </button>
@@ -510,6 +658,12 @@ const CaseWorkflow: React.FC = () => {
         >
           🔮 Prediction
         </button>
+        <button
+          className={`tab ${activeTab === 'entities' ? 'active' : ''}`}
+          onClick={() => setActiveTab('entities')}
+        >
+          🏷️ Entities & Conflicts
+        </button>
       </div>
 
       <div className="workflow-content">
@@ -536,6 +690,19 @@ const CaseWorkflow: React.FC = () => {
             onLockArgument={handleLockArgument}
             loading={loading}
           />
+        )}
+
+        {activeTab === 'entities' && (
+          <div className="entities-tab-content">
+            <EntitySummary caseId={caseId} onRefresh={loadCaseData} />
+            <EntityMapping caseId={caseId} onRefresh={loadCaseData} />
+            <ConflictsPanel caseId={caseId} onRefresh={loadCaseData} />
+            <ClarificationQuestions
+              caseId={caseId}
+              onAnswerSubmitted={loadCaseData}
+              onRefresh={loadCaseData}
+            />
+          </div>
         )}
 
         {activeTab === 'predictions' && (

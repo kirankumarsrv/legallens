@@ -44,18 +44,27 @@ const HomePage: React.FC = () => {
         case_name: formData.caseName,
         case_type: formData.caseType,
       });
+      
+      if (!newCase || !newCase.case_id || newCase.case_id === 'undefined') {
+        console.error('Invalid case created:', newCase);
+        alert('❌ Failed to create case (invalid response). Check server logs.');
+        setLoading(false);
+        return;
+      }
+      
+      // Verify case was added to the list
       setCases([...cases, newCase]);
       setFormData({ caseName: '', caseType: '' });
       setShowCreateForm(false);
-      if (!newCase || !newCase.case_id || newCase.case_id === 'undefined') {
-        console.error('Invalid case created:', newCase);
-        alert('Failed to create case (invalid response). Check server logs.');
-        return;
-      }
+      
+      // Show success message
+      console.log(`✅ Case created successfully: ${newCase.case_id}`);
+      alert(`✅ Case "${newCase.case_name}" created! Opening case...`);
+      
       navigate(`/case/${newCase.case_id}`);
     } catch (error) {
-      console.error('Failed to create case:', error);
-      alert('Failed to create case');
+      console.error('❌ Failed to create case:', error);
+      alert(`❌ Failed to create case: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -63,6 +72,21 @@ const HomePage: React.FC = () => {
 
   const handleSelectCase = (caseId: string) => {
     navigate(`/case/${caseId}`);
+  };
+
+  const handleDeleteCase = async (caseId: string) => {
+    setLoading(true);
+    try {
+      await caseAPI.delete(caseId);
+      // Remove from local state
+      setCases(cases.filter(c => c.case_id !== caseId));
+      alert('✅ Case deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete case:', error);
+      alert('❌ Failed to delete case');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -106,6 +130,7 @@ const HomePage: React.FC = () => {
         cases={cases}
         onSelectCase={handleSelectCase}
         onCreateCase={() => setShowCreateForm(true)}
+        onDeleteCase={handleDeleteCase}
         loading={loading}
       />
     </div>

@@ -16,7 +16,7 @@ from fastapi import FastAPI, HTTPException, Query, UploadFile, File
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime, timezone
 import uuid
 import json
@@ -170,6 +170,7 @@ class ArgumentRequest(BaseModel):
     content: str
     legal_basis: str = ""
     relevance_score: float = 0.5
+    fact_ids: List[str] = []
 
 
 class ArgumentResponse(BaseModel):
@@ -179,6 +180,7 @@ class ArgumentResponse(BaseModel):
     legal_basis: str
     relevance_score: float
     status: str
+    fact_ids: List[str] = []
     created_at: Optional[str] = None
     approved_at: Optional[str] = None
 
@@ -196,9 +198,12 @@ class PredictionHistoryItem(BaseModel):
 class CaseInfo(BaseModel):
     """Case metadata."""
     case_id: str
-    created_at: Optional[str]
-    updated_at: Optional[str]
+    case_name: str
     status: str = "in_progress"
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    fact_count: int = 0
+    argument_count: int = 0
 
 
 class CreateCaseRequest(BaseModel):
@@ -253,13 +258,51 @@ EVIDENCE_UPLOAD_DIR = "evidence_uploads"
 # Case Management Endpoints
 # ============================================================================
 
-@app.get("/cases", response_model=List[str])
+@app.get("/cases", response_model=List[CaseInfo])
 def list_cases():
-    """List all case IDs in the database."""
+    """List all cases with their metadata."""
     try:
-        cases = CaseSessionStorage.get_all_cases(DB_PATH)
+        case_ids = CaseSessionStorage.get_all_cases(DB_PATH)
+        if not case_ids:
+            return []
+        
+        cases = []
+        for case_id in case_ids:
+            try:
+                storage = CaseSessionStorage(case_id, DB_PATH)
+                state_flags = storage.get_all_state_flags()
+                
+                # Get case metadata from state flags
+                case_name = state_flags.get("case_name", case_id)
+                status = storage.get_case_status() or "in_progress"
+                
+                # Count facts and arguments
+                facts_data = storage.load_facts()
+                args_data = storage.load_arguments()
+                fact_count = len(facts_data.get("facts", [])) if facts_data else 0
+                arg_count = len(args_data.get("arguments", [])) if args_data else 0
+                
+                # Get timestamps with fallback
+                now = datetime.now(timezone.utc).isoformat()
+                created_at = state_flags.get("created_at", now)
+                updated_at = state_flags.get("updated_at", now)
+                
+                cases.append(CaseInfo(
+                    case_id=case_id,
+                    case_name=case_name,
+                    status=status,
+                    created_at=created_at,
+                    updated_at=updated_at,
+                    fact_count=fact_count,
+                    argument_count=arg_count
+                ))
+            except Exception as case_err:
+                print(f"Error loading case {case_id}: {case_err}")
+                continue
+        
         return cases
     except Exception as e:
+        print(f"Error in list_cases: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -270,16 +313,40 @@ def create_case(request: CreateCaseRequest):
         # Generate a unique case_id (UUID4 hex)
         case_id = uuid.uuid4().hex
         storage = CaseSessionStorage(case_id, DB_PATH)
+        
+        # Ensure case session exists in database
         storage.set_case_status("in_progress")
-        # Optionally, we could store case metadata; keep minimal for now
+        
+        # Store case metadata
         now = datetime.now(timezone.utc).isoformat()
+        case_name = request.case_name if request.case_name else f"Case {case_id[:8]}"
+        
+        storage.set_state_flag("case_name", case_name)
+        storage.set_state_flag("case_type", request.case_type or "")
+        storage.set_state_flag("created_at", now)
+        storage.set_state_flag("updated_at", now)
+        
+        # Verify case was saved to database
+        all_cases = CaseSessionStorage.get_all_cases(DB_PATH)
+        if case_id not in all_cases:
+            print(f"⚠️  WARNING: Case {case_id} was not saved to database!")
+            raise HTTPException(status_code=500, detail="Case could not be saved to database")
+        
+        print(f"✅ Case created and saved to database: {case_id} (name: {case_name})")
+        
         return CaseInfo(
             case_id=case_id,
+            case_name=case_name,
             created_at=now,
             updated_at=now,
-            status="in_progress"
+            status="in_progress",
+            fact_count=0,
+            argument_count=0
         )
+    except HTTPException:
+        raise
     except Exception as e:
+        print(f"❌ Error creating case: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -288,10 +355,29 @@ def get_case(case_id: str):
     """Get case metadata."""
     try:
         storage = CaseSessionStorage(case_id, DB_PATH)
+        state_flags = storage.get_all_state_flags()
         status = storage.get_case_status() or "in_progress"
+        
+        # Get case metadata from state flags
+        case_name = state_flags.get("case_name", case_id)
+        now = datetime.now(timezone.utc).isoformat()
+        created_at = state_flags.get("created_at", now)
+        updated_at = state_flags.get("updated_at", now)
+        
+        # Count facts and arguments
+        facts_data = storage.load_facts()
+        args_data = storage.load_arguments()
+        fact_count = len(facts_data.get("facts", [])) if facts_data else 0
+        arg_count = len(args_data.get("arguments", [])) if args_data else 0
+        
         return CaseInfo(
             case_id=case_id,
-            status=status
+            case_name=case_name,
+            status=status,
+            created_at=created_at,
+            updated_at=updated_at,
+            fact_count=fact_count,
+            argument_count=arg_count
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -564,7 +650,8 @@ def create_argument(case_id: str, argument: ArgumentRequest):
         
         arg_id = arg_store.add_argument(
             content=argument.content,
-            legal_basis=argument.legal_basis
+            legal_basis=argument.legal_basis,
+            fact_ids=argument.fact_ids
         )
         
         storage.save_arguments(arg_store.to_dict())
@@ -585,6 +672,10 @@ def update_argument(case_id: str, arg_id: str, argument: ArgumentRequest):
         arg_store = ArgumentStorage.from_dict(args_data)
         
         arg_store.update_argument(arg_id, content=argument.content)
+        # Update fact_ids manually since update_argument doesn't have fact_ids parameter
+        if arg_id in arg_store.arguments:
+            arg_store.arguments[arg_id]["fact_ids"] = argument.fact_ids
+            arg_store.arguments[arg_id]["updated_at"] = datetime.now().isoformat()
         storage.save_arguments(arg_store.to_dict())
         storage.set_state_flag("arguments_edited", True)
         
@@ -1026,11 +1117,17 @@ def compute_case_stream(
     enable_research_papers: bool = Query(False),
     enable_google_scholar: bool = Query(True),
     enable_arxiv: bool = Query(True),
-    enable_indian_legal_db: bool = Query(True)
+    enable_indian_legal_db: bool = Query(True),
+    workflow: str = Query("fact_retrieval")  # Which workflow to run
 ):
-    """Stream compute progress (SSE style) for a case. This reads persisted problem statement and evidence metadata if available.
-
-    This endpoint returns `text/event-stream` events with JSON payloads in `data:` lines.
+    """
+    Stream compute progress (SSE style) for a case.
+    
+    Workflows:
+    - fact_retrieval: ONLY retrieve and summarize facts (Workflow 1)
+    - argument_generation: ONLY generate arguments from locked facts (Workflow 2)
+    - prediction: ONLY generate prediction (Workflow 3)
+    - draft_generation: ONLY generate draft (Workflow 4)
     """
     def sse_event(data: str):
         return f"data: {data}\n\n"
@@ -1039,9 +1136,19 @@ def compute_case_stream(
         try:
             storage = CaseSessionStorage(case_id, DB_PATH)
 
-            # Build initial state using persisted flags
+            # Load problem statement from state flags
+            problem_statement = storage.get_state_flag("problem_statement") or ""
+            
+            # Debug: Show if problem statement was loaded
+            if problem_statement:
+                ps_preview = problem_statement[:100] + "..." if len(problem_statement) > 100 else problem_statement
+                print(f"\n✅ PROBLEM STATEMENT LOADED ({len(problem_statement)} chars): {ps_preview}")
+            else:
+                print("\n⚠️  WARNING: No problem statement found! Please click 'Save Problem' before 'Run Compute'")
+
+            # Build initial state
             state = {
-                "question": storage.get_state_flag("problem_statement") or "",
+                "question": problem_statement,
                 "evidence_files": storage.get_state_flag("evidence_files") or None,
                 "evidence_text": None,
                 "detected_language": None,
@@ -1051,11 +1158,13 @@ def compute_case_stream(
                 "facts": None,
                 "facts_raw": None,
                 "fact_storage": None,
+                "argument_storage": None,
                 "facts_approved_and_locked": storage.get_state_flag("facts_approved_and_locked", False),
                 "analysis": None,
                 "statutes": None,
                 "precedents": None,
                 "prediction": None,
+                "prediction_history": [],
                 "similar_cases": None,
                 "prediction_confidence": None,
                 "draft": None,
@@ -1066,107 +1175,439 @@ def compute_case_stream(
 
             yield sse_event("{\"phase\": \"start\", \"message\": \"Compute started\"}")
 
-            # Phase 0: Evidence ingest
-            yield sse_event('{"phase": "evidence_ingest", "message": "Starting evidence ingestion"}')
-            state = evidence_ingest_node(state)
-            yield sse_event('{"phase": "evidence_ingest", "message": "Evidence ingestion complete"}')
-
-            # Persist any evidence paths into flags (already done by upload endpoint)
-
-            # Phase 1: Fact gathering
-            yield sse_event('{"phase": "fact_gathering", "message": "Starting fact gathering"}')
-            # Initialize dependencies (cached by get_dependencies) so Phase1 can use embeddings/FAISS
+            # Get dependencies
             try:
                 deps = get_dependencies()
-                _chroma = deps.get("chroma_stores")
+                _chroma = deps.get("chroma_stores") or {}
                 _emb = deps.get("embedding_model")
                 _faiss = deps.get("faiss_store")
                 _llm = deps.get("llm")
-            except Exception:
+            except Exception as e:
+                print(f"Warning: Failed to get dependencies: {e}")
                 _chroma = {}
                 _emb = None
                 _faiss = None
                 _llm = None
 
-            state = fact_gathering_node(
-                state=state,
-                chroma_stores=_chroma,
-                embedding_model=_emb,
-                faiss_store=_faiss,
-                llm=_llm,
-                enable_web_search=enable_web_search,
-                enable_research_papers=enable_research_papers,
-                enable_google_scholar=enable_google_scholar,
-                enable_arxiv=enable_arxiv,
-                enable_indian_legal_db=enable_indian_legal_db,
-            )
-            # Save facts
-            try:
-                if state.get("fact_storage"):
-                    storage.save_facts(state["fact_storage"].to_dict())
-                    storage.set_state_flag("facts_edited", True)
-            except Exception:
-                pass
-            yield sse_event('{"phase": "fact_gathering", "message": "Fact gathering complete"}')
+            if workflow == "fact_retrieval":
+                # ========== TWO-PHASE WORKFLOW: ENTITY EXTRACTION → RAG RETRIEVAL ==========
+                from workflows.lawyer_agent.workflow_1_fact_retrieval import (
+                    create_entity_extraction_workflow,
+                    create_fact_gathering_workflow
+                )
+                
+                # Check if entities already extracted and clarifications answered
+                existing_clarifications = storage.get_state_flag("entity_clarifications") or []
+                unanswered_clarifications = [c for c in existing_clarifications if not c.get("answered", False)]
+                
+                if not existing_clarifications:
+                    # === PHASE 1: ENTITY EXTRACTION & ANOMALY DETECTION ===
+                    print("\n" + "="*80)
+                    print("PHASE 1: ENTITY EXTRACTION & ANOMALY DETECTION")
+                    print("="*80)
+                    
+                    yield sse_event('{"phase": "start", "message": "Phase 1: Entity Extraction & Anomaly Detection"}')
+                    
+                    # Run entity extraction workflow ONLY
+                    entity_workflow = create_entity_extraction_workflow(
+                        llm=_llm,
+                        auto_resolve_conflicts=False,
+                        similarity_threshold=0.85
+                    )
+                    
+                    state = entity_workflow.invoke(state)
+                    
+                    # Save entity extraction results
+                    try:
+                        if state.get("normalized_entities"):
+                            storage.set_state_flag("normalized_entities", state["normalized_entities"])
+                        if state.get("entity_canonical_map"):
+                            storage.set_state_flag("entity_canonical_map", state["entity_canonical_map"])
+                        if state.get("entity_conflicts"):
+                            storage.set_state_flag("entity_conflicts", state["entity_conflicts"])
+                        if state.get("entity_clarifications"):
+                            storage.set_state_flag("entity_clarifications", state["entity_clarifications"])
+                        if state.get("entity_summary"):
+                            storage.set_state_flag("entity_summary", state["entity_summary"])
+                        
+                        clarifications = state.get("entity_clarifications", [])
+                        if clarifications:
+                            print(f"\n⏸️  WORKFLOW STOPPED: {len(clarifications)} clarification(s) required")
+                            print("   Please review the 🏷️ Entities & Conflicts tab and answer questions")
+                            yield sse_event('{{"phase": "paused", "message": "⏸️  Workflow paused - {} clarification(s) needed from lawyer", "clarifications_count": {}}}' .format(len(clarifications), len(clarifications)))
+                        else:
+                            print("\n✅ No clarifications needed, ready for Phase 2")
+                            yield sse_event('{"phase": "phase1_complete", "message": "✅ Entity extraction complete - no clarifications needed"}')
+                    
+                    except Exception as e:
+                        print(f"Warning: Failed to save entity data: {e}")
+                    
+                    yield sse_event('{"phase": "done", "message": "Phase 1 complete - Review entities before continuing"}')
+                
+                elif unanswered_clarifications:
+                    # === CLARIFICATIONS STILL PENDING ===
+                    print(f"\n⚠️  {len(unanswered_clarifications)} clarification(s) still unanswered")
+                    print("   Please answer all questions in the 🏷️ Entities & Conflicts tab before continuing")
+                    yield sse_event('{{"phase": "waiting", "message": "⚠️  {} clarification(s) still need answers", "clarifications_count": {}}}' .format(len(unanswered_clarifications), len(unanswered_clarifications)))
+                    yield sse_event('{"phase": "done", "message": "Please answer clarification questions before continuing"}')
+                
+                else:
+                    # === PHASE 2: RAG RETRIEVAL WITH CLEAN ENTITIES ===
+                    print("\n" + "="*80)
+                    print("PHASE 2: RAG RETRIEVAL WITH VERIFIED ENTITIES")
+                    print("="*80)
+                    
+                    yield sse_event('{"phase": "start", "message": "Phase 2: RAG Retrieval with verified entities"}')
+                    
+                    # Load verified entities from state flags
+                    state["normalized_entities"] = storage.get_state_flag("normalized_entities")
+                    state["entity_canonical_map"] = storage.get_state_flag("entity_canonical_map")
+                    
+                    # Load existing facts if any
+                    facts_data = storage.load_facts()
+                    if facts_data:
+                        try:
+                            state["fact_storage"] = FactStorage.from_dict(facts_data)
+                        except Exception:
+                            pass
+                    
+                    # Run fact gathering workflow with clean entities
+                    fact_workflow = create_fact_gathering_workflow(
+                        chroma_stores=_chroma,
+                        embedding_model=_emb,
+                        faiss_store=_faiss,
+                        llm=_llm,
+                        enable_web_search=enable_web_search,
+                        enable_research_papers=enable_research_papers,
+                        enable_google_scholar=enable_google_scholar,
+                        enable_arxiv=enable_arxiv,
+                        enable_indian_legal_db=enable_indian_legal_db
+                    )
+                    
+                    state = fact_workflow.invoke(state)
+                    
+                    # Save facts
+                    try:
+                        if state.get("fact_storage"):
+                            storage.save_facts(state["fact_storage"].to_dict())
+                            storage.set_state_flag("facts_edited", True)
+                    except Exception as e:
+                        print(f"Warning: Failed to save facts: {e}")
+                    
+                    print("\n✅ RAG retrieval complete with verified entities")
+                    yield sse_event('{"phase": "done", "message": "✅ Phase 2 complete - Facts retrieved with clean entities"}')
 
-            # Phase 2: Legal analysis
-            yield sse_event('{"phase": "legal_analysis", "message": "Starting legal analysis"}')
-            deps = get_dependencies()
-            llm = deps.get("llm")
-            embedding_model = deps.get("embedding_model")
-            chroma_stores = deps.get("chroma_stores")
-            faiss_store = deps.get("faiss_store")
 
-            if llm is None:
-                class SimpleLLM:
-                    def generate(self, prompt, *a, **k):
-                        return "(placeholder LLM) Analysis unavailable"
-                llm = SimpleLLM()
+            elif workflow == "argument_generation":
+                # ========== WORKFLOW 2: ARGUMENT GENERATION ONLY ==========
+                yield sse_event('{"phase": "legal_analysis", "message": "Starting argument generation"}')
+                
+                # Load facts and arguments from database
+                facts_data = storage.load_facts()
+                if facts_data:
+                    try:
+                        state["fact_storage"] = FactStorage.from_dict(facts_data)
+                    except Exception:
+                        pass
+                
+                args_data = storage.load_arguments()
+                if args_data:
+                    try:
+                        from modules.argument_storage import ArgumentStorage as ArgStore
+                        state["argument_storage"] = ArgStore.from_dict(args_data)
+                    except Exception:
+                        pass
+                
+                # Validate locked facts exist
+                if not state.get("fact_storage"):
+                    raise ValueError("No facts found. Please run fact retrieval first.")
+                
+                locked_facts = state["fact_storage"].get_locked_facts()
+                if not locked_facts:
+                    raise ValueError("No locked facts found. Please approve and lock facts first.")
+                
+                state["facts"] = locked_facts
+                state["facts_approved_and_locked"] = True
+                
+                if _llm is None:
+                    class SimpleLLM:
+                        def generate(self, prompt, *a, **k):
+                            return "(placeholder LLM) Analysis unavailable"
+                    _llm = SimpleLLM()
+                
+                state = legal_analysis_node(
+                    state=state,
+                    chroma_stores=_chroma,
+                    embedding_model=_emb,
+                    faiss_store=_faiss,
+                    llm=_llm
+                )
+                
+                # Save arguments and analysis
+                try:
+                    if state.get("argument_storage"):
+                        storage.save_arguments(state["argument_storage"].to_dict())
+                        storage.set_state_flag("arguments_edited", True)
+                    if state.get("analysis"):
+                        storage.save_state("analysis", state["analysis"])
+                except Exception as e:
+                    print(f"Warning: Failed to save arguments/analysis: {e}")
+                
+                analysis_text = state.get("analysis", "")
+                yield sse_event(json.dumps({
+                    "phase": "legal_analysis", 
+                    "message": "Argument generation complete"
+                }))
+                yield sse_event(json.dumps({
+                    "phase": "done", 
+                    "message": "Argument generation complete",
+                    "analysis": analysis_text
+                }))
 
-            state = legal_analysis_node(state=state, chroma_stores=chroma_stores, embedding_model=embedding_model, faiss_store=faiss_store, llm=llm)
-            # Save arguments
-            try:
-                if state.get("argument_storage"):
-                    storage.save_arguments(state["argument_storage"].to_dict())
-                    storage.set_state_flag("arguments_edited", True)
-            except Exception:
-                pass
-            yield sse_event('{"phase": "legal_analysis", "message": "Legal analysis complete"}')
+            elif workflow == "prediction":
+                # ========== WORKFLOW 3: PREDICTION ONLY ==========
+                yield sse_event('{"phase": "prediction", "message": "Starting prediction"}')
+                
+                # Load arguments from database
+                args_data = storage.load_arguments()
+                if args_data:
+                    try:
+                        from modules.argument_storage import ArgumentStorage as ArgStore
+                        state["argument_storage"] = ArgStore.from_dict(args_data)
+                    except Exception:
+                        pass
+                
+                # Validate arguments exist
+                if not state.get("argument_storage"):
+                    raise ValueError("No arguments found. Please run argument generation first.")
+                
+                if _llm is None:
+                    class SimpleLLM:
+                        def generate(self, prompt, *a, **k):
+                            return "(placeholder LLM) Prediction unavailable"
+                    _llm = SimpleLLM()
+                
+                state = prediction_node(state=state, faiss_store=_faiss, llm=_llm, embedding_model=_emb)
+                
+                # Save prediction history
+                try:
+                    if state.get("prediction_history"):
+                        storage.save_prediction_history(state["prediction_history"])
+                except Exception as e:
+                    print(f"Warning: Failed to save prediction: {e}")
+                
+                yield sse_event('{"phase": "prediction", "message": "Prediction complete"}')
+                yield sse_event(json.dumps({
+                    "phase": "done",
+                    "message": "Prediction complete",
+                    "prediction": state.get("prediction"),
+                    "prediction_confidence": state.get("prediction_confidence")
+                }))
 
-            # Phase 3: Prediction
-            yield sse_event('{"phase": "prediction", "message": "Starting prediction"}')
-            state = prediction_node(state=state, faiss_store=None, llm=llm, embedding_model=None)
-            # Save prediction history
-            try:
-                if state.get("prediction_history"):
-                    storage.save_prediction_history(state["prediction_history"])
-            except Exception:
-                pass
-            yield sse_event('{"phase": "prediction", "message": "Prediction complete"}')
+            elif workflow == "draft_generation":
+                # ========== WORKFLOW 4: DRAFT GENERATION ONLY ==========
+                yield sse_event('{"phase": "draft_generation", "message": "Starting draft generation"}')
+                
+                # Load all context from database
+                facts_data = storage.load_facts()
+                if facts_data:
+                    try:
+                        state["fact_storage"] = FactStorage.from_dict(facts_data)
+                    except Exception:
+                        pass
+                
+                args_data = storage.load_arguments()
+                if args_data:
+                    try:
+                        from modules.argument_storage import ArgumentStorage as ArgStore
+                        state["argument_storage"] = ArgStore.from_dict(args_data)
+                    except Exception:
+                        pass
+                
+                # Load prediction if available
+                try:
+                    pred_history = storage.load_prediction_history()
+                    if pred_history:
+                        state["prediction_history"] = pred_history
+                        if pred_history:
+                            latest = pred_history[-1]
+                            state["prediction"] = latest.get("prediction")
+                            state["prediction_confidence"] = latest.get("confidence")
+                except Exception:
+                    pass
+                
+                # Validate required context
+                if not state.get("fact_storage"):
+                    raise ValueError("No facts found. Cannot generate draft.")
+                if not state.get("argument_storage"):
+                    raise ValueError("No arguments found. Cannot generate draft.")
+                
+                if _llm is None:
+                    class SimpleLLM:
+                        def generate(self, prompt, *a, **k):
+                            return "(placeholder LLM) Draft unavailable"
+                    _llm = SimpleLLM()
+                
+                state = draft_generation_node(state=state, llm=_llm)
+                
+                yield sse_event('{"phase": "draft_generation", "message": "Draft generation complete"}')
+                yield sse_event(json.dumps({
+                    "phase": "done",
+                    "message": "Draft generation complete",
+                    "draft": state.get("draft", "")
+                }))
 
-            # Phase 4: Draft generation
-            yield sse_event('{"phase": "draft_generation", "message": "Starting draft generation"}')
-            state = draft_generation_node(state=state, llm=llm)
-            yield sse_event('{"phase": "draft_generation", "message": "Draft generation complete"}')
-
-            # Final state summary
-            summary = {
-                "phase": "done",
-                "message": "Compute finished",
-                "analysis": state.get("analysis", ""),
-                "arguments_count": len(getattr(state.get("argument_storage"), "arguments", {})) if state.get("argument_storage") else 0,
-                "prediction": state.get("prediction"),
-                "prediction_confidence": state.get("prediction_confidence"),
-                "draft": state.get("draft", ""),
-                "reasoning_trace": state.get("reasoning_trace", [])
-            }
-            yield sse_event(json.dumps(summary))
+            else:
+                raise ValueError(f"Unknown workflow: {workflow}")
 
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             yield sse_event(json.dumps({"phase": "error", "message": str(e)}))
 
     return StreamingResponse(generator(), media_type='text/event-stream')
 
+
+# ============ ENTITY EXTRACTION & CONFLICT RESOLUTION ENDPOINTS ============
+
+@app.get("/cases/{case_id}/entities")
+def get_entities(case_id: str):
+    """Returns all extracted entities (persons, dates, organizations, etc.) from workflow_1."""
+    try:
+        storage = CaseSessionStorage(case_id, DB_PATH)
+        
+        # Get entities from state flags
+        normalized_entities = storage.get_state_flag("normalized_entities", {}) or {}
+        entity_canonical_map = storage.get_state_flag("entity_canonical_map", {}) or {}
+        
+        return {
+            "case_id": case_id,
+            "normalized_entities": normalized_entities,
+            "canonical_map": entity_canonical_map,
+            "total_entities": len(normalized_entities),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        # Return empty data on any error instead of 500
+        return {
+            "case_id": case_id,
+            "normalized_entities": {},
+            "canonical_map": {},
+            "total_entities": 0,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+
+@app.get("/cases/{case_id}/entities/conflicts")
+def get_entity_conflicts(case_id: str):
+    """Returns detected entity conflicts (e.g., same person in multiple roles)."""
+    try:
+        storage = CaseSessionStorage(case_id, DB_PATH)
+        
+        # Get conflicts from state flags
+        entity_conflicts = storage.get_state_flag("entity_conflicts", []) or []
+        entity_summary = storage.get_state_flag("entity_summary", "") or ""
+        
+        return {
+            "case_id": case_id,
+            "conflicts": entity_conflicts,
+            "conflict_count": len(entity_conflicts),
+            "summary": entity_summary,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        # Return empty data on any error instead of 500
+        return {
+            "case_id": case_id,
+            "conflicts": [],
+            "conflict_count": 0,
+            "summary": "",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+
+@app.get("/cases/{case_id}/entities/clarifications")
+def get_entity_clarifications(case_id: str):
+    """Returns LLM-generated clarification questions for ambiguous entities/conflicts."""
+    try:
+        storage = CaseSessionStorage(case_id, DB_PATH)
+        
+        # Get clarifications from state flags
+        entity_clarifications = storage.get_state_flag("entity_clarifications", []) or []
+        
+        return {
+            "case_id": case_id,
+            "clarifications": entity_clarifications,
+            "pending_count": len([c for c in entity_clarifications if not c.get("resolved", False)]),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        # Return empty data on any error instead of 500
+        return {
+            "case_id": case_id,
+            "clarifications": [],
+            "pending_count": 0,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+
+class ClarificationAnswerRequest(BaseModel):
+    """Lawyer's response to an entity clarification question."""
+    clarification_id: Union[int, str]  # Accept both int and str for backwards compatibility
+    answer: str
+    resolution: Optional[str] = None
+    notes: Optional[str] = None
+
+
+@app.post("/cases/{case_id}/entities/answer")
+def submit_clarification_answer(case_id: str, request: ClarificationAnswerRequest):
+    """Accept lawyer's answer to clarification questions and resolve conflicts."""
+    try:
+        print(f"\n📝 CLARIFICATION ANSWER RECEIVED:")
+        print(f"   Case ID: {case_id}")
+        print(f"   Clarification ID: {request.clarification_id} (type: {type(request.clarification_id).__name__})")
+        print(f"   Answer: {request.answer[:100]}...")
+        
+        storage = CaseSessionStorage(case_id, DB_PATH)
+        
+        # Get clarifications from state flags
+        entity_clarifications = storage.get_state_flag("entity_clarifications", []) or []
+        
+        # Find and update the clarification
+        updated = False
+        for clarification in entity_clarifications:
+            # Compare as strings to handle both int and string IDs
+            if str(clarification.get("id")) == str(request.clarification_id):
+                clarification["answered"] = True
+                clarification["resolved"] = True
+                clarification["lawyer_answer"] = request.answer
+                clarification["resolution"] = request.resolution
+                clarification["notes"] = request.notes
+                clarification["resolved_at"] = datetime.now(timezone.utc).isoformat()
+                updated = True
+                break
+        
+        if not updated:
+            raise HTTPException(status_code=404, detail=f"Clarification {request.clarification_id} not found")
+        
+        # Update state
+        storage.set_state_flag("entity_clarifications", entity_clarifications)
+        
+        # Count remaining unanswered (use 'answered' field to match workflow check)
+        unanswered = len([c for c in entity_clarifications if not c.get("answered", False)])
+        
+        return {
+            "status": "answered",
+            "case_id": case_id,
+            "clarification_id": request.clarification_id,
+            "lawyer_answer": request.answer,
+            "remaining_unanswered": unanswered,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/cases/{case_id}/problem")

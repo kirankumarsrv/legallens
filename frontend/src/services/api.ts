@@ -65,13 +65,8 @@ export interface StateFlags {
 // Case endpoints
 export const caseAPI = {
   list: async () => {
-    const response = await apiClient.get<any[]>('/cases');
-    // Backend may return a list of case IDs (string[]) or full CaseInfo objects.
-    return response.data.map((item) =>
-      typeof item === 'string'
-        ? ({ case_id: item, case_name: item, status: 'in_progress', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), fact_count: 0, argument_count: 0 } as CaseInfo)
-        : (item as CaseInfo)
-    );
+    const response = await apiClient.get<CaseInfo[]>('/cases');
+    return response.data;
   },
   get: async (caseId: string) => {
     const response = await apiClient.get<CaseInfo>(`/cases/${caseId}`);
@@ -267,6 +262,90 @@ export const stateAPI = {
   },
   clearFlag: async (caseId: string, flagKey: string) => {
     await apiClient.delete(`/cases/${caseId}/state/${flagKey}`);
+  },
+};
+
+// Entity extraction & conflict resolution endpoints
+export interface EntityItem {
+  name: string;
+  type: string; // 'person', 'date', 'organization', 'location', 'section', etc.
+  count: number;
+  roles?: string[];
+  first_seen?: string;
+  evidence_source?: string;
+}
+
+export interface EntityConflict {
+  id?: string;
+  entity_name: string;
+  entity_type: string;
+  roles: string[];
+  severity: 'low' | 'medium' | 'high';
+  description: string;
+  occurrences?: Array<{ text: string; source: string }>;
+}
+
+export interface Clarification {
+  id: string;
+  type: string; // 'conflict' | 'duplicate' | 'ambiguity'
+  question: string;
+  context: string;
+  related_conflicts?: string[];
+  resolved?: boolean;
+  lawyer_answer?: string;
+  resolution?: string;
+  notes?: string;
+  resolved_at?: string;
+}
+
+export const entityAPI = {
+  getEntities: async (caseId: string) => {
+    const response = await apiClient.get(`/cases/${caseId}/entities`);
+    return response.data as {
+      case_id: string;
+      normalized_entities: Record<string, EntityItem>;
+      canonical_map: Record<string, string>;
+      total_entities: number;
+      timestamp: string;
+    };
+  },
+  
+  getConflicts: async (caseId: string) => {
+    const response = await apiClient.get(`/cases/${caseId}/entities/conflicts`);
+    return response.data as {
+      case_id: string;
+      conflicts: EntityConflict[];
+      conflict_count: number;
+      summary: string;
+      timestamp: string;
+    };
+  },
+  
+  getClarifications: async (caseId: string) => {
+    const response = await apiClient.get(`/cases/${caseId}/entities/clarifications`);
+    return response.data as {
+      case_id: string;
+      clarifications: Clarification[];
+      pending_count: number;
+      timestamp: string;
+    };
+  },
+  
+  submitAnswer: async (caseId: string, clarificationId: string, answer: string, resolution?: string, notes?: string) => {
+    const response = await apiClient.post(`/cases/${caseId}/entities/answer`, {
+      clarification_id: clarificationId,
+      answer: answer,
+      resolution: resolution,
+      notes: notes,
+    });
+    return response.data as {
+      status: string;
+      case_id: string;
+      clarification_id: string;
+      lawyer_answer: string;
+      remaining_clarifications: number;
+      timestamp: string;
+    };
   },
 };
 

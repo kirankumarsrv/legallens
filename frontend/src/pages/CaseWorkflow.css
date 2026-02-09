@@ -259,3 +259,9 @@
 .toggle-item input[type="checkbox"]:checked {
   accent-color: #27ae60;
 }
+
+.entities-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
