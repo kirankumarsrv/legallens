@@ -158,6 +158,7 @@ class FactResponse(BaseModel):
     source: str
     source_details: Optional[Dict[str, Any]] = None
     llm_summary: Optional[str] = None
+    case_reference: Optional[str] = None  # New field for detailed case info (case name, id, year)
     relevance_score: float
     status: str
     created_at: Optional[str] = None
@@ -219,6 +220,9 @@ class ComputeRequest(BaseModel):
     evidence_files: Optional[List[str]] = None
     enable_web_search: bool = False
     enable_research_papers: bool = False
+    enable_google_scholar: bool = True
+    enable_arxiv: bool = True
+    enable_indian_legal_db: bool = True
     pdf_directory: Optional[str] = None
 
 
@@ -317,10 +321,12 @@ def list_facts(case_id: str):
             return []
         fs = FactStorage.from_dict(facts_data)
         facts = fs.get_all_facts()
-        # Populate top-level llm_summary from source_details if present
+        # Populate top-level llm_summary and case_reference from source_details if present
         for f in facts:
             if not f.get("llm_summary") and f.get("source_details"):
                 f["llm_summary"] = f["source_details"].get("llm_summary")
+            if not f.get("case_reference") and f.get("source_details"):
+                f["case_reference"] = f["source_details"].get("case_reference")
         return [FactResponse(**f) for f in facts]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -338,9 +344,11 @@ def get_fact(case_id: str, fact_id: str):
         fact = fs.get_fact(fact_id)
         if not fact:
             raise HTTPException(status_code=404, detail="Fact not found")
-        # expose llm_summary at top-level for frontend convenience
+        # expose llm_summary and case_reference at top-level for frontend convenience
         if not fact.get("llm_summary") and fact.get("source_details"):
             fact["llm_summary"] = fact["source_details"].get("llm_summary")
+        if not fact.get("case_reference") and fact.get("source_details"):
+            fact["case_reference"] = fact["source_details"].get("case_reference")
         return FactResponse(**fact)
     except HTTPException:
         raise
@@ -876,6 +884,9 @@ def compute_case(case_id: str, request: ComputeRequest):
                 llm=llm,
                 enable_web_search=request.enable_web_search,
                 enable_research_papers=request.enable_research_papers,
+                enable_google_scholar=request.enable_google_scholar,
+                enable_arxiv=request.enable_arxiv,
+                enable_indian_legal_db=request.enable_indian_legal_db,
                 pdf_directory=request.pdf_directory,
             )
         else:
@@ -1009,7 +1020,14 @@ async def upload_evidence(case_id: str, files: List[UploadFile] = File(...)):
 
 
 @app.get("/cases/{case_id}/compute/stream")
-def compute_case_stream(case_id: str, enable_web_search: bool = Query(False), enable_research_papers: bool = Query(False)):
+def compute_case_stream(
+    case_id: str, 
+    enable_web_search: bool = Query(False), 
+    enable_research_papers: bool = Query(False),
+    enable_google_scholar: bool = Query(True),
+    enable_arxiv: bool = Query(True),
+    enable_indian_legal_db: bool = Query(True)
+):
     """Stream compute progress (SSE style) for a case. This reads persisted problem statement and evidence metadata if available.
 
     This endpoint returns `text/event-stream` events with JSON payloads in `data:` lines.
@@ -1078,6 +1096,9 @@ def compute_case_stream(case_id: str, enable_web_search: bool = Query(False), en
                 llm=_llm,
                 enable_web_search=enable_web_search,
                 enable_research_papers=enable_research_papers,
+                enable_google_scholar=enable_google_scholar,
+                enable_arxiv=enable_arxiv,
+                enable_indian_legal_db=enable_indian_legal_db,
             )
             # Save facts
             try:

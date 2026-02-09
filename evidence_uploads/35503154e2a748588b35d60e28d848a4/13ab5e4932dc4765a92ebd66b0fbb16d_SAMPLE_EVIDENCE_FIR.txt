@@ -1,0 +1,144 @@
+===================================================================
+FIRST INFORMATION REPORT (FIR)
+===================================================================
+
+FIR Number: TC/DL/2024/45678
+Date of Filing: 15-DEC-2024
+Time of Filing: 16:30 IST
+Police Station: Central District Traffic Police Station
+Officer Name: Sub-Inspector Vikram Singh (Badge: CP-2847)
+
+===================================================================
+INCIDENT DETAILS
+===================================================================
+
+Date of Incident: 15-DEC-2024
+Time of Incident: 15:45 IST
+Location: Intersection of Ring Road and Sector 12, City Central
+District: Central District
+State: National Capital Territory
+
+===================================================================
+VICTIM / COMPLAINANT
+===================================================================
+
+Name: Amit Sharma
+Age: 28 years
+Gender: Male
+Occupation: Software Engineer
+Address: Plot 45, Green Heights Residential Complex, Sector 8
+Contact: +91-9876543210
+Aadhar: [Redacted for privacy]
+Injuries: Multiple lacerations, fractured left arm, head trauma
+Hospital: City Central Hospital, Ward 304
+
+===================================================================
+ACCUSED / DEFENDANT
+===================================================================
+
+Name: Rajesh Kumar
+Age: 35 years
+Gender: Male
+Occupation: Commercial Taxi Driver
+Address: Apartment 5B, Lakeside Complex, Sector 22
+License Number: DL-1234567890
+License Valid Until: 15-JUN-2025
+Vehicle: Commercial Taxi
+Registration Number: DL-01-AB-5678
+Vehicle Type: Maruti Suzuki Swift (Yellow Taxi)
+Insurance: Policy No. IND/AUTO/2024/789456 (Valid)
+
+===================================================================
+INCIDENT DESCRIPTION
+===================================================================
+
+On the date and time mentioned above, the complainant Amit Sharma was riding his two-wheeler 
+(Hero MotoCorp, Registration: DL-02-CD-9012) lawfully across the intersection of Ring Road 
+and Sector 12. The traffic signal was in the complainant's favor (Green light for the direction 
+from which he was approaching).
+
+At the same time, the accused Rajesh Kumar was operating a commercial taxi in a reckless 
+and negligent manner. The vehicle was traveling at a speed significantly exceeding the 
+prescribed speed limit for urban roads (estimated 70-80 km/h in a 40 km/h zone).
+
+The accused's vehicle failed to stop at the red traffic signal and proceeded to cross the 
+intersection at high speed. As a result, the vehicle collided with the complainant's two-wheeler, 
+causing the complainant to be thrown from the vehicle onto the road.
+
+===================================================================
+ALLEGED OFFENSES
+===================================================================
+
+1. Section 279 IPC: Rash or negligent conduct with respect to traffic rules
+2. Section 304A IPC: Causing hurt by act endangering life or personal safety
+3. Section 338 IPC: Causing hurt by act endangering life or personal safety
+
+===================================================================
+EVIDENCE COLLECTED AT SCENE
+===================================================================
+
+1. CCTV Footage:
+   - Source: Traffic Camera TC-DL-001 (at intersection)
+   - Duration: 5 minutes (15:43 to 15:48 IST)
+   - Status: Secured and sealed in evidence locker EV-2024-001
+   - Showing: Clear visibility of accident, speed of vehicle, signal status
+
+2. Physical Evidence:
+   - Vehicle damage photographs (12 images) - Secured
+   - Road scene photographs (15 images) - Secured
+   - Debris collection report - Filed
+   - Glass and metal fragments - Stored in EV-2024-002
+
+3. Witness Statements:
+   - Witness 1: Priya Verma (Office worker, nearby building)
+   - Witness 2: Rajesh Patel (Street vendor, adjacent to intersection)
+   - Witness 3: Mohammad Ali (Passerby, waiting for bus)
+   - All statements recorded and signed
+
+4. Medical Evidence:
+   - Ambulance arrival time: 15:55 IST (10 minutes after accident)
+   - Hospital admission: 16:05 IST
+   - Doctor's report: Dr. Anil Kumar, City Central Hospital
+
+5. Forensic Evidence:
+   - Breathalyzer test result: 0.08% BAC (Just above legal limit of 0.03%)
+   - Time of test: 16:10 IST
+   - Equipment: Alco-Sensor FST (Calibrated on 14-DEC-2024)
+   - Medical blood test requested (Pending)
+
+===================================================================
+OFFICER'S OBSERVATIONS
+===================================================================
+
+The accused appeared disoriented at the time of police arrival. Strong smell of alcohol 
+was detected. The accused admitted to consuming "a couple of drinks" at a nearby bar 
+(Cafe Club, 200m from intersection) approximately 45 minutes before the incident.
+
+Road conditions: Clear and dry
+Weather: Partly cloudy, good visibility
+Traffic: Moderate traffic at intersection during incident time
+
+===================================================================
+ACTION TAKEN
+===================================================================
+
+1. Accused arrested and detained under Section 41 CrPC
+2. Vehicle impounded (Lot: IM-2024-567)
+3. License seized temporarily pending court order
+4. Evidence secured in storage facility
+5. Case registered at Central District Police Station
+6. Investigation ongoing
+
+===================================================================
+INVESTIGATING OFFICER SIGNATURE
+===================================================================
+
+Sub-Inspector Vikram Singh
+Central District Traffic Police Station
+Date: 15-DEC-2024
+Time: 18:30 IST
+Badge Number: CP-2847
+
+[Seal of Police Station]
+
+===================================================================

@@ -32,6 +32,13 @@ const CaseWorkflow: React.FC = () => {
   const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
   const [evidenceFilePaths, setEvidenceFilePaths] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'facts' | 'arguments' | 'predictions'>('facts');
+  
+  // Retrieval tool toggles
+  const [enableWebSearch, setEnableWebSearch] = useState(true);
+  const [enableResearchPapers, setEnableResearchPapers] = useState(false);
+  const [enableGoogleScholar, setEnableGoogleScholar] = useState(true);
+  const [enableArxiv, setEnableArxiv] = useState(true);
+  const [enableIndianLegalDB, setEnableIndianLegalDB] = useState(true);
 
   if (!caseId) {
     return <div className="error">Case ID not found</div>;
@@ -92,8 +99,11 @@ const CaseWorkflow: React.FC = () => {
 
     // Use SSE stream endpoint to get per-node progress
     const params = new URLSearchParams();
-    params.set('enable_web_search', 'true');
-    params.set('enable_research_papers', 'false');
+    params.set('enable_web_search', enableWebSearch.toString());
+    params.set('enable_research_papers', enableResearchPapers.toString());
+    params.set('enable_google_scholar', enableGoogleScholar.toString());
+    params.set('enable_arxiv', enableArxiv.toString());
+    params.set('enable_indian_legal_db', enableIndianLegalDB.toString());
     const url = `${(import.meta.env.VITE_API_BASE as string) || 'http://localhost:8000'}/cases/${caseId}/compute/stream?${params.toString()}`;
 
     const es = new EventSource(url);
@@ -410,6 +420,73 @@ const CaseWorkflow: React.FC = () => {
                 </ul>
               </div>
             )}
+          </div>
+        </div>
+        
+        {/* Retrieval Tools Configuration */}
+        <div className="retrieval-config">
+          <h4>🔧 Fact Retrieval Sources</h4>
+          <p className="config-description">Select which sources to use for gathering legal facts and precedents</p>
+          <div className="toggle-grid">
+            <label className="toggle-item">
+              <input
+                type="checkbox"
+                checked={enableWebSearch}
+                onChange={(e) => setEnableWebSearch(e.target.checked)}
+              />
+              <span className="toggle-label">
+                <strong>🌐 Web Search</strong>
+                <small>Tavily/Google/Bing general web search</small>
+              </span>
+            </label>
+            
+            <label className="toggle-item">
+              <input
+                type="checkbox"
+                checked={enableGoogleScholar}
+                onChange={(e) => setEnableGoogleScholar(e.target.checked)}
+              />
+              <span className="toggle-label">
+                <strong>🎓 Google Scholar</strong>
+                <small>Academic legal papers & citations</small>
+              </span>
+            </label>
+            
+            <label className="toggle-item">
+              <input
+                type="checkbox"
+                checked={enableArxiv}
+                onChange={(e) => setEnableArxiv(e.target.checked)}
+              />
+              <span className="toggle-label">
+                <strong>📖 ArXiv</strong>
+                <small>Legal research papers & preprints</small>
+              </span>
+            </label>
+            
+            <label className="toggle-item">
+              <input
+                type="checkbox"
+                checked={enableIndianLegalDB}
+                onChange={(e) => setEnableIndianLegalDB(e.target.checked)}
+              />
+              <span className="toggle-label">
+                <strong>⚖️ Indian Legal DBs</strong>
+                <small>IndianKanoon & specialized databases</small>
+              </span>
+            </label>
+            
+            <label className="toggle-item">
+              <input
+                type="checkbox"
+                checked={enableResearchPapers}
+                onChange={(e) => setEnableResearchPapers(e.target.checked)}
+              />
+              <span className="toggle-label">
+                <strong>📄 Research Papers</strong>
+                <small>Local PDF semantic search</small>
+              </span>
+            </label>
           </div>
         </div>
       </div>

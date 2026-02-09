@@ -686,3 +686,160 @@ class FactRetrieverFactory:
         
         return composite
 
+
+class GoogleScholarRetriever(BaseRetriever):
+    """Retrieve from Google Scholar for legal citations and academic papers"""
+    
+    def __init__(self):
+        super().__init__(SourceType.WEB_SEARCH)
+        self.name = "GoogleScholarRetriever"
+    
+    def retrieve(self, query: str, constraints: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        """Retrieve from Google Scholar"""
+        constraints = constraints or {}
+        facts = []
+        
+        try:
+            # Use scholarly library if available
+            try:
+                from scholarly import scholarly
+                search_query = scholarly.search_pubs(query)
+                
+                for idx, pub in enumerate(search_query):
+                    if idx >= constraints.get("k", 3):
+                        break
+                    
+                    title = pub.get('bib', {}).get('title', 'Unknown')
+                    abstract = pub.get('bib', {}).get('abstract', '')
+                    authors = ', '.join(pub.get('bib', {}).get('author', []))
+                    year = pub.get('bib', {}).get('pub_year', '')
+                    url = pub.get('pub_url', '')
+                    
+                    content = f"Title: {title}\nAuthors: {authors}\nYear: {year}\nAbstract: {abstract[:500]}"
+                    
+                    fact = self._create_fact(
+                        content=content,
+                        relevance_score=0.7,
+                        source_details={
+                            "title": title,
+                            "authors": authors,
+                            "year": year,
+                            "url": url,
+                            "abstract": abstract[:500]
+                        },
+                        metadata={"source": "google_scholar", "rank": idx + 1}
+                    )
+                    facts.append(fact)
+            except ImportError:
+                print("   ℹ️  scholarly library not installed. Install: pip install scholarly")
+        except Exception as e:
+            print(f"   ⚠️  Google Scholar search failed: {e}")
+        
+        return facts
+
+
+class ArxivRetriever(BaseRetriever):
+    """Retrieve from ArXiv for legal research papers"""
+    
+    def __init__(self):
+        super().__init__(SourceType.RESEARCH_PAPER)
+        self.name = "ArxivRetriever"
+    
+    def retrieve(self, query: str, constraints: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        """Retrieve from ArXiv"""
+        constraints = constraints or {}
+        facts = []
+        
+        try:
+            import arxiv
+            
+            # Search ArXiv
+            search = arxiv.Search(
+                query=query,
+                max_results=constraints.get("k", 2),
+                sort_by=arxiv.SortCriterion.Relevance
+            )
+            
+            for idx, result in enumerate(search.results()):
+                content = f"Title: {result.title}\nAuthors: {', '.join([a.name for a in result.authors])}\nPublished: {result.published}\nSummary: {result.summary[:500]}"
+                
+                fact = self._create_fact(
+                    content=content,
+                    relevance_score=0.65,
+                    source_details={
+                        "title": result.title,
+                        "authors": [a.name for a in result.authors],
+                        "published": str(result.published),
+                        "url": result.entry_id,
+                        "pdf_url": result.pdf_url,
+                        "summary": result.summary[:500]
+                    },
+                    metadata={"source": "arxiv", "rank": idx + 1}
+                )
+                facts.append(fact)
+        except ImportError:
+            print("   ℹ️  arxiv library not installed. Install: pip install arxiv")
+        except Exception as e:
+            print(f"   ⚠️  ArXiv search failed: {e}")
+        
+        return facts
+
+
+class IndianLegalDBRetriever(BaseRetriever):
+    """Retrieve from Indian legal databases (IndianKanoon, etc.)"""
+    
+    def __init__(self):
+        super().__init__(SourceType.WEB_SEARCH)
+        self.name = "IndianLegalDBRetriever"
+    
+    def retrieve(self, query: str, constraints: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        """Retrieve from Indian legal databases via web scraping/API"""
+        constraints = constraints or {}
+        facts = []
+        
+        try:
+            import requests
+            from bs4 import BeautifulSoup
+            
+            # IndianKanoon search
+            search_url = "https://indiankanoon.org/search/"
+            params = {"formInput": query}
+            
+            try:
+                response = requests.get(search_url, params=params, timeout=10)
+                if response.status_code == 200:
+                    soup = BeautifulSoup(response.content, 'html.parser')
+                    results = soup.find_all('div', class_='result', limit=constraints.get("k", 4))
+                    
+                    for idx, result in enumerate(results):
+                        title_elem = result.find('a', class_='result_title')
+                        snippet_elem = result.find('div', class_='snippet')
+                        
+                        if title_elem:
+                            title = title_elem.get_text(strip=True)
+                            url = "https://indiankanoon.org" + title_elem.get('href', '')
+                            snippet = snippet_elem.get_text(strip=True) if snippet_elem else ""
+                            
+                            content = f"Case: {title}\nExcerpt: {snippet[:500]}"
+                            
+                            fact = self._create_fact(
+                                content=content,
+                                relevance_score=0.8,
+                                source_details={
+                                    "case_name": title,
+                                    "url": url,
+                                    "snippet": snippet[:500],
+                                    "database": "IndianKanoon"
+                                },
+                                metadata={"source": "indian_kanoon", "rank": idx + 1}
+                            )
+                            facts.append(fact)
+            except requests.RequestException as e:
+                print(f"   ⚠️  IndianKanoon request failed: {e}")
+                
+        except ImportError:
+            print("   ℹ️  beautifulsoup4 not installed. Install: pip install beautifulsoup4 requests")
+        except Exception as e:
+            print(f"   ⚠️  Indian legal DB search failed: {e}")
+        
+        return facts
