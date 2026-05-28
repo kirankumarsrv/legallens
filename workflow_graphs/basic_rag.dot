@@ -1,0 +1,11 @@
+digraph G {
+  rankdir=LR;
+  node [shape=box, style=rounded, fontsize=12];
+  entry [label="ENTRY", shape=circle, style=filled, fillcolor=lightgrey];
+  exit [label="FINISH", shape=doublecircle, style=filled, fillcolor=lightgrey];
+  "retrieve";
+  "generate";
+  entry -> "retrieve";
+  "retrieve" -> "generate";
+  "generate" -> exit;
+}
